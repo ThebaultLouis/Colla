@@ -1,0 +1,176 @@
+.database-view {
+  min-height: 100vh;
+  padding: 60px 96px;
+  background: #ffffff;
+}
+
+.database-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.database-name-input {
+  flex: 1;
+  font-size: 40px;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  padding: 3px 2px;
+  color: #37352f;
+  background: transparent;
+}
+
+.database-name-input::placeholder {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+.database-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(35, 131, 226, 0.07);
+  color: #2383e2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.save-btn:hover {
+  background: rgba(35, 131, 226, 0.14);
+}
+
+.database-description {
+  margin-bottom: 32px;
+}
+
+.description-input {
+  width: 100%;
+  font-size: 16px;
+  color: rgba(55, 53, 47, 0.65);
+  border: none;
+  outline: none;
+  padding: 3px 2px;
+  background: transparent;
+}
+
+.description-input::placeholder {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+.database-content {
+  margin-top: 32px;
+}
+
+.database-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.add-page-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(35, 131, 226, 0.07);
+  color: #2383e2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.add-page-btn:hover {
+  background: rgba(35, 131, 226, 0.14);
+}
+
+.database-empty {
+  text-align: center;
+  padding: 96px 32px;
+  color: rgba(55, 53, 47, 0.65);
+}
+
+.database-empty p {
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.empty-add-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(35, 131, 226, 0.07);
+  color: #2383e2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.empty-add-btn:hover {
+  background: rgba(35, 131, 226, 0.14);
+}
+
+.database-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.database-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.database-table thead {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.database-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.65);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.database-row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.database-row:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.database-table td {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #37352f;
+}
+
+.title-cell {
+  font-weight: 500;
+}
+
+.date-cell {
+  color: rgba(55, 53, 47, 0.65);
+  font-size: 13px;
+}
+
+.loading {
+  text-align: center;
+  padding: 96px 32px;
+  color: rgba(55, 53, 47, 0.45);
+  font-size: 14px;
+}

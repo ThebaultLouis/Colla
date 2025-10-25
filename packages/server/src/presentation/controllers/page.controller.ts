@@ -16,33 +16,58 @@ export class PageController {
   private initializeRoutes(): void {
     this.router.post('/pages', this.createPage.bind(this));
     this.router.get('/pages', this.listPages.bind(this));
+    this.router.get('/pages/root', this.listRootPages.bind(this)); // Nouvelles routes
     this.router.get('/pages/:id', this.getPage.bind(this));
+    this.router.get('/pages/:id/children', this.listDatabasePages.bind(this));
     this.router.put('/pages/:id', this.updatePage.bind(this));
     this.router.delete('/pages/:id', this.deletePage.bind(this));
   }
 
   private async createPage(req: Request, res: Response): Promise<void> {
     try {
-      const { title, content } = req.body;
+      const { title, content, isDatabase, parentId } = req.body;
 
       if (!title) {
         res.status(400).json({ error: 'Title is required' });
         return;
       }
 
-      const page = await this.pageService.createPage(title, content);
+      const page = await this.pageService.createPage(title, content, isDatabase, parentId);
       res.status(201).json(page.toJSON());
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
   }
 
-  private async listPages(req: Request, res: Response): Promise<void> {
+  private async listPages(_req: Request, res: Response): Promise<void> {
     try {
       const pages = await this.pageService.listPages();
       res.status(200).json(pages.map((p) => p.toJSON()));
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  private async listRootPages(_req: Request, res: Response): Promise<void> {
+    try {
+      const pages = await this.pageService.listRootPages();
+      res.status(200).json(pages.map((p) => p.toJSON()));
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  }
+
+  private async listDatabasePages(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const pages = await this.pageService.listDatabasePages(id);
+      res.status(200).json(pages.map((p) => p.toJSON()));
+    } catch (error) {
+      if ((error as Error).message.includes('not found')) {
+        res.status(404).json({ error: (error as Error).message });
+      } else {
+        res.status(500).json({ error: (error as Error).message });
+      }
     }
   }
 

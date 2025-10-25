@@ -13,7 +13,7 @@ export function PageList() {
 
   const loadPages = async () => {
     try {
-      const data = await pageApi.listPages();
+      const data = await pageApi.listRootPages();
       setPages(data);
     } catch (error) {
       console.error('Failed to load pages:', error);

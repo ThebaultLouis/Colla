@@ -13,7 +13,7 @@ export function PageEditor() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (id && id !== 'new') {
       loadPage(id);
     } else {
       setLoading(false);

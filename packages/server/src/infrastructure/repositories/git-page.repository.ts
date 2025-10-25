@@ -1,7 +1,14 @@
 import * as git from 'isomorphic-git';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Page, PageId, PageRepository, PageTitle, PageContent } from '@colla/shared';
+import {
+  Page,
+  PageId,
+  PageRepository,
+  PageTitle,
+  PageContent,
+  Property
+} from '@colla/shared';
 
 /**
  * GitPageRepository - Adapter (Architecture Hexagonale)
@@ -27,6 +34,25 @@ export class GitPageRepository implements PageRepository {
 
   private async initGitRepo(): Promise<void> {
     await git.init({ fs, dir: this.gitDir, defaultBranch: 'main' });
+  }
+
+  private reconstructProperties(propertiesData: Record<string, any>): Map<string, Property> {
+    const properties = new Map<string, Property>();
+
+    if (!propertiesData) {
+      return properties;
+    }
+
+    for (const [propertyId, propData] of Object.entries(propertiesData)) {
+      try {
+        const property = Property.reconstitute(propData);
+        properties.set(propertyId, property);
+      } catch (error) {
+        console.error(`Failed to reconstruct property ${propertyId}:`, error);
+      }
+    }
+
+    return properties;
   }
 
   async save(page: Page): Promise<void> {
@@ -61,10 +87,16 @@ export class GitPageRepository implements PageRepository {
     const content = fs.readFileSync(filePath, 'utf-8');
     const data = JSON.parse(content);
 
+    const properties = this.reconstructProperties(data.properties || {});
+    const parentId = data.parentId ? PageId.create(data.parentId) : null;
+
     return Page.reconstitute(
       PageId.create(data.id),
       PageTitle.create(data.title),
       PageContent.create(data.content),
+      properties,
+      data.isDatabase || false,
+      parentId,
       new Date(data.createdAt),
       new Date(data.updatedAt),
     );
@@ -82,11 +114,17 @@ export class GitPageRepository implements PageRepository {
       if (file.endsWith('.json')) {
         const content = fs.readFileSync(path.join(this.pagesDir, file), 'utf-8');
         const data = JSON.parse(content);
+        const properties = this.reconstructProperties(data.properties || {});
+        const parentId = data.parentId ? PageId.create(data.parentId) : null;
+
         pages.push(
           Page.reconstitute(
             PageId.create(data.id),
             PageTitle.create(data.title),
             PageContent.create(data.content),
+            properties,
+            data.isDatabase || false,
+            parentId,
             new Date(data.createdAt),
             new Date(data.updatedAt),
           ),
@@ -95,6 +133,19 @@ export class GitPageRepository implements PageRepository {
     }
 
     return pages;
+  }
+
+  async findRootPages(): Promise<Page[]> {
+    const allPages = await this.findAll();
+    return allPages.filter(page => page.isRootPage());
+  }
+
+  async findByParentId(parentId: PageId): Promise<Page[]> {
+    const allPages = await this.findAll();
+    return allPages.filter(page => {
+      const pageParentId = page.getParentId();
+      return pageParentId !== null && pageParentId.getValue() === parentId.getValue();
+    });
   }
 
   async delete(id: PageId): Promise<void> {

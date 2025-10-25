@@ -1,76 +1,106 @@
 .page-editor {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: #ffffff;
+  padding: 60px 96px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 16px;
 }
 
 .title-input {
   flex: 1;
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 40px;
+  font-weight: 700;
   border: none;
   outline: none;
-  padding: 0.5rem;
+  padding: 3px 2px;
+  color: #37352f;
+  background: transparent;
+  resize: none;
+  overflow: hidden;
+  min-height: 1.2em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.title-input::placeholder {
+  color: rgba(55, 53, 47, 0.3);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.editor-header:hover .actions {
+  opacity: 1;
 }
 
 .actions button {
-  padding: 0.5rem 1rem;
+  padding: 6px 12px;
   border: none;
   border-radius: 4px;
-  background: #007bff;
-  color: white;
+  background: rgba(35, 131, 226, 0.07);
+  color: #2383e2;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
 }
 
 .actions button:hover {
-  background: #0056b3;
+  background: rgba(35, 131, 226, 0.14);
 }
 
 .actions button:disabled {
-  background: #cccccc;
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(55, 53, 47, 0.3);
   cursor: not-allowed;
 }
 
 .actions .delete-btn {
-  background: #dc3545;
+  background: rgba(235, 87, 87, 0.07);
+  color: #eb5757;
 }
 
 .actions .delete-btn:hover {
-  background: #c82333;
+  background: rgba(235, 87, 87, 0.14);
 }
 
 .content-editor {
   flex: 1;
-  padding: 2rem;
+  padding: 3px 2px;
   border: none;
   outline: none;
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1.6;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   resize: none;
+  color: #37352f;
+  background: transparent;
+  min-height: 500px;
+}
+
+.content-editor::placeholder {
+  color: rgba(55, 53, 47, 0.3);
 }
 
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #666;
+  min-height: 100vh;
+  font-size: 14px;
+  color: rgba(55, 53, 47, 0.45);
 }

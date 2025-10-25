@@ -35,11 +35,13 @@ describe('Page Entity', () => {
       const createdAt = new Date('2025-01-01');
       const updatedAt = new Date('2025-01-02');
 
-      const page = Page.reconstitute(id, title, content, createdAt, updatedAt);
+      const page = Page.reconstitute(id, title, content, new Map(), false, null, createdAt, updatedAt);
 
       expect(page.getId().getValue()).toBe('page-1');
       expect(page.getCreatedAt()).toEqual(createdAt);
       expect(page.getUpdatedAt()).toEqual(updatedAt);
+      expect(page.isADatabase()).toBe(false);
+      expect(page.isRootPage()).toBe(true);
     });
   });
 
@@ -108,9 +110,26 @@ describe('Page Entity', () => {
         id: 'page-1',
         title: 'Test Page',
         content: 'Test content',
+        properties: {},
+        isDatabase: false,
+        parentId: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
+    });
+
+    it('should serialize database to JSON', () => {
+      const database = Page.create(
+        PageId.create('db-1'),
+        PageTitle.create('My Database'),
+        PageContent.create(''),
+        true, // isDatabase
+      );
+
+      const json = database.toJSON();
+
+      expect(json.isDatabase).toBe(true);
+      expect(json.parentId).toBe(null);
     });
   });
 });
