@@ -220,7 +220,14 @@ export class GitPageRepository implements PageRepository {
       parent = Parent.workspace();
     }
 
+    // Déterminer le type d'objet (page ou database)
+    let objectType: 'page' | 'database' = 'page';
+    if (data.object === 'database' || data.isDatabase === true) {
+      objectType = 'database';
+    }
+
     return Page.reconstitute(
+      objectType,
       PageId.create(data.id),
       new Date(data.created_time || data.createdAt || Date.now()),
       new Date(data.last_edited_time || data.updatedAt || Date.now()),
@@ -237,7 +244,6 @@ export class GitPageRepository implements PageRepository {
       // Legacy fields
       legacyProperties,
       PageContent.create(data.content || ''),
-      data.isDatabase || false,
     );
   }
 
@@ -297,25 +303,27 @@ export class GitPageRepository implements PageRepository {
           parent = Parent.workspace();
         }
 
+        // Déterminer le type d'objet (page ou database)
+        const objectType: 'page' | 'database' = data.object === 'database' ? 'database' : (data.isDatabase ? 'database' : 'page');
+
         pages.push(
           Page.reconstitute(
-            PageId.create(data.id),
-            new Date(data.created_time || data.createdAt || Date.now()),
-            new Date(data.last_edited_time || data.updatedAt || Date.now()),
-            created_by,
-            last_edited_by,
-            cover,
-            icon,
-            parent,
-            data.archived || false,
-            data.in_trash || data.inTrash || false,
-            properties,
-            data.url || null,
-            data.public_url || null,
-            // Legacy fields
-            legacyProperties,
-            PageContent.create(data.content || ''),
-            data.isDatabase || false,
+            objectType, // object
+            PageId.create(data.id), // id
+            new Date(data.created_time || data.createdAt || Date.now()), // created_time
+            new Date(data.last_edited_time || data.updatedAt || Date.now()), // last_edited_time
+            created_by, // created_by
+            last_edited_by, // last_edited_by
+            cover, // cover
+            icon, // icon
+            parent, // parent
+            data.archived || false, // archived
+            data.in_trash || data.inTrash || false, // in_trash
+            properties, // properties
+            data.url || null, // url
+            data.public_url || null, // public_url
+            legacyProperties, // legacyProperties
+            PageContent.create(data.content || ''), // content
           ),
         );
       }

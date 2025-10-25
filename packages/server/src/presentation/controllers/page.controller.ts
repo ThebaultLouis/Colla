@@ -25,14 +25,17 @@ export class PageController {
 
   private async createPage(req: Request, res: Response): Promise<void> {
     try {
-      const { title, content, isDatabase, parentId } = req.body;
+      const { title, content, object, parentId } = req.body;
 
       if (!title) {
         res.status(400).json({ error: 'Title is required' });
         return;
       }
 
-      const page = await this.pageService.createPage(title, content, isDatabase, parentId);
+      // object peut être 'page' ou 'database', par défaut 'page'
+      const objectType: 'page' | 'database' = object === 'database' ? 'database' : 'page';
+
+      const page = await this.pageService.createPage(title, content, objectType, parentId);
       res.status(201).json(page.toJSON());
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

@@ -1,4 +1,4 @@
-import { Page, PageId, PageTitle, PageContent, PageRepository, Property } from '@colla/shared';
+import { Page, PageId, PageTitle, PageContent, PageRepository, Parent } from '@colla/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -8,12 +8,12 @@ import { v4 as uuidv4 } from 'uuid';
 export class PageService {
   constructor(private readonly pageRepository: PageRepository) { }
 
-  async createPage(title: string, content?: string, isDatabase = false, parentId?: string): Promise<Page> {
+  async createPage(title: string, content?: string, objectType: 'page' | 'database' = 'page', parentId?: string): Promise<Page> {
     const id = PageId.create(uuidv4());
     const pageTitle = PageTitle.create(title);
     const pageContent = content ? PageContent.create(content) : PageContent.empty();
 
-    const page = Page.create(id, pageTitle, pageContent, isDatabase);
+    const page = Page.create(id, pageTitle, pageContent, objectType);
 
     // Si un parentId est fourni, définir le parent
     if (parentId) {
@@ -24,7 +24,8 @@ export class PageService {
       if (!parent.isADatabase()) {
         throw new Error(`Parent must be a database`);
       }
-      page.setParent(PageId.create(parentId));
+      // Utiliser setParent avec un objet Parent
+      page.setParent(Parent.dataSource(parentId));
     }
 
     await this.pageRepository.save(page);
@@ -32,7 +33,7 @@ export class PageService {
   }
 
   async createDatabase(name: string, description?: string): Promise<Page> {
-    return this.createPage(name, description, true);
+    return this.createPage(name, description, 'database');
   }
 
   async getPage(id: string): Promise<Page | null> {
@@ -80,12 +81,12 @@ export class PageService {
     }
 
     if (properties !== undefined) {
-      // Mettre à jour les propriétés
+      // Mettre à jour les propriétés (format PropertyValueObject)
       console.log('🔧 Processing properties:', properties);
-      for (const [propId, propData] of Object.entries(properties)) {
-        console.log('  Setting property:', propId, propData);
-        const property = Property.reconstitute(propData);
-        page.setProperty(propId, property);
+      for (const [propName, propData] of Object.entries(properties)) {
+        console.log('  Setting property:', propName, propData);
+        // Les propriétés viennent déjà au format PropertyValueDTO depuis l'UI
+        page.setProperty(propName, propData as any);
       }
     }
 

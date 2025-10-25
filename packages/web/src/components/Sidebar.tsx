@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { pageApi, PageDTO } from '../api/page.api';
 import { syncApi } from '../api/sync.api';
 import './Sidebar.css';
@@ -10,6 +10,7 @@ export function Sidebar() {
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -27,8 +28,8 @@ export function Sidebar() {
     }
   };
 
-  const isActive = (id: string, isDatabase: boolean) => {
-    const basePath = isDatabase ? '/database/' : '/page/';
+  const isActive = (id: string, object: 'page' | 'database') => {
+    const basePath = object === 'database' ? '/database/' : '/page/';
     return location.pathname === `${basePath}${id}`;
   };
 
@@ -36,7 +37,7 @@ export function Sidebar() {
     try {
       const newPage = await pageApi.createPage('Sans titre', '');
       await loadData();
-      window.location.href = `/page/${newPage.id}`;
+      navigate(`/page/${newPage.id}`);
     } catch (error) {
       console.error('Failed to create page:', error);
     }
@@ -46,7 +47,7 @@ export function Sidebar() {
     try {
       const newDb = await pageApi.createDatabase('Nouvelle base de données', '');
       await loadData();
-      window.location.href = `/database/${newDb.id}`;
+      navigate(`/database/${newDb.id}`);
     } catch (error) {
       console.error('Failed to create database:', error);
     }
@@ -113,14 +114,14 @@ export function Sidebar() {
               <div className="sidebar-empty">Aucun élément</div>
             ) : (
               rootItems.map((item) => {
-                const path = item.isDatabase ? `/database/${item.id}` : `/page/${item.id}`;
-                const icon = item.isDatabase ? '🗃️' : '📝';
+                const path = item.object === 'database' ? `/database/${item.id}` : `/page/${item.id}`;
+                const icon = item.icon?.emoji || item.icon?.external?.url || item.icon?.file?.url || (item.object === 'database' ? '🗃️' : '📝');
 
                 return (
                   <Link
                     key={item.id}
                     to={path}
-                    className={`sidebar-item ${isActive(item.id, item.isDatabase) ? 'active' : ''}`}
+                    className={`sidebar-item ${isActive(item.id, item.object) ? 'active' : ''}`}
                   >
                     <span className="sidebar-item-icon">{icon}</span>
                     <span className="sidebar-item-title">

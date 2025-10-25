@@ -33,7 +33,7 @@ function getPropertyDisplayValue(prop: PropertyValueDTO | undefined): string {
     case 'title':
       return getTitleText(prop);
     case 'rich_text':
-      return ''; // TODO: implémenter
+      return (prop as any).rich_text?.map((t: any) => t.plain_text).join('') || '';
     case 'number':
       return (prop as NumberPropertyDTO).number?.toString() || '';
     case 'checkbox':
@@ -58,14 +58,13 @@ function getPropertyDisplayValue(prop: PropertyValueDTO | undefined): string {
 export function DatabaseView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // @ts-expect-error - database will be used in future features
   const [database, setDatabase] = useState<PageDTO | null>(null);
   const [pages, setPages] = useState<PageDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [properties, setProperties] = useState<PropertyDefinition[]>([]);
-  const [editingCell, setEditingCell] = useState<{ pageId: string; propertyId: string } | null>(null);
+  const [editingCell, setEditingCell] = useState<{ pageId: string; propertyName: string } | null>(null);
   const [showAddProperty, setShowAddProperty] = useState(false);
 
   useEffect(() => {
@@ -84,7 +83,7 @@ export function DatabaseView() {
       // Charger la database elle-même
       const dbData = await pageApi.getPage(dbId);
 
-      if (!dbData.isDatabase) {
+      if (dbData.object !== 'database') {
         console.error('This is not a database');
         navigate('/');
         return;
@@ -152,8 +151,8 @@ export function DatabaseView() {
 
     try {
       // Créer une nouvelle page avec cette database comme parent
-      const newPage = await pageApi.createPage('Sans titre', '', false, id);
-      navigate(`/page/${newPage.id}`);
+      const newPage = await pageApi.createPageInDatabase(id, 'Sans titre', '');
+      setPages([...pages, newPage]);
     } catch (error) {
       console.error('Failed to create page:', error);
     }
@@ -164,6 +163,11 @@ export function DatabaseView() {
   };
 
   const handleAddProperty = async (propertyName: string, propertyType: PropertyDefinition['type']) => {
+    if (!id || id === 'new') {
+      console.error('Veuillez d\'abord enregistrer la base de données');
+      return;
+    }
+
     const newProperty: PropertyDefinition = {
       id: `prop_${Date.now()}`,
       name: propertyName,
@@ -174,28 +178,101 @@ export function DatabaseView() {
     setProperties(updatedProperties);
     setShowAddProperty(false);
 
-    // Note: Les définitions de colonnes sont maintenant inférées des propriétés des pages
-    // Pas besoin de les sauvegarder séparément dans la database
-    console.log('✅ Property column added:', propertyName, propertyType);
+    try {
+      // Sauvegarder le schéma dans la database en créant une propriété vide
+      if (database) {
+        const schemaProperties: Record<string, PropertyValueDTO> = {
+          ...(database.properties || {})
+        };
+
+        // Créer une propriété vide du bon type pour définir le schéma
+        let emptyValue: PropertyValueDTO;
+        switch (propertyType) {
+          case 'title':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'title',
+              title: []
+            };
+            break;
+          case 'rich_text':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'rich_text',
+              rich_text: []
+            } as any;
+            break;
+          case 'number':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'number',
+              number: null
+            };
+            break;
+          case 'checkbox':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'checkbox',
+              checkbox: false
+            };
+            break;
+          case 'select':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'select',
+              select: null
+            };
+            break;
+          case 'date':
+            emptyValue = {
+              id: newProperty.id,
+              type: 'date',
+              date: null
+            };
+            break;
+          default:
+            console.error('Unsupported property type:', propertyType);
+            return;
+        }
+
+        schemaProperties[propertyName] = emptyValue;
+
+        await pageApi.updatePage(id, database.title, database.content, schemaProperties);
+        setDatabase({ ...database, properties: schemaProperties });
+
+        console.log('✅ Property column added and saved:', propertyName, propertyType);
+      }
+    } catch (error) {
+      console.error('❌ Failed to save property schema:', error);
+    }
   };
 
   const handleUpdatePropertyValue = async (pageId: string, propertyName: string, value: string | number | boolean) => {
     try {
+      console.log('🔵 handleUpdatePropertyValue called:', { pageId, propertyName, value });
+
       const page = pages.find(p => p.id === pageId);
       if (!page) {
-        console.error('Page not found:', pageId);
+        console.error('❌ Page not found:', pageId);
         return;
       }
+
+      console.log('✅ Found page:', page.title, 'Properties:', page.properties);
 
       // Trouver la définition de la propriété
       const propDef = properties.find(p => p.name === propertyName);
       if (!propDef) {
-        console.error('Property definition not found:', propertyName);
+        console.error('❌ Property definition not found:', propertyName);
+        console.log('Available properties:', properties);
         return;
       }
 
+      console.log('✅ Found property definition:', propDef);
+
       // Créer la nouvelle valeur de propriété au format Notion
       let newPropertyValue: PropertyValueDTO;
+
+      console.log('🔧 Creating property value for type:', propDef.type);
 
       switch (propDef.type) {
         case 'title':
@@ -217,6 +294,27 @@ export function DatabaseView() {
               href: null
             }]
           };
+          break;
+
+        case 'rich_text':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'rich_text',
+            rich_text: [{
+              type: 'text',
+              text: { content: String(value), link: null },
+              annotations: {
+                bold: false,
+                italic: false,
+                strikethrough: false,
+                underline: false,
+                code: false,
+                color: 'default'
+              },
+              plain_text: String(value),
+              href: null
+            }]
+          } as any;
           break;
 
         case 'number':
@@ -262,14 +360,18 @@ export function DatabaseView() {
         [propertyName]: newPropertyValue,
       };
 
-      console.log('Updating page properties:', {
+      console.log('📤 Updating page with properties:', {
         pageId,
+        pageTitle: page.title,
         propertyName,
         value,
-        newPropertyValue
+        newPropertyValue,
+        updatedProperties
       });
 
       await pageApi.updatePage(pageId, page.title, page.content, updatedProperties);
+
+      console.log('✅ Update successful!');
 
       // Mettre à jour localement
       setPages(pages.map(p =>
@@ -278,7 +380,7 @@ export function DatabaseView() {
 
       setEditingCell(null);
     } catch (error) {
-      console.error('Failed to update property:', error);
+      console.error('❌ Failed to update property:', error);
     }
   };
 
@@ -356,29 +458,29 @@ export function DatabaseView() {
                 {pages.map((page) => (
                   <tr key={page.id} className="database-row">
                     {properties.map((prop) => {
-                      const isEditing = editingCell?.pageId === page.id && editingCell?.propertyId === prop.id;
-                      const value = getPropertyValue(page, prop.id);
+                      const isEditing = editingCell?.pageId === page.id && editingCell?.propertyName === prop.name;
+                      const value = getPropertyValue(page, prop.name);
 
                       return (
                         <td
-                          key={`${page.id}-${prop.id}`}
-                          className={prop.id === 'name' ? 'name-cell clickable' : 'editable-cell'}
+                          key={`${page.id}-${prop.name}`}
+                          className={prop.name === 'Title' ? 'name-cell clickable' : 'editable-cell'}
                           onClick={() => {
-                            if (prop.id === 'name') {
+                            if (prop.name === 'Title') {
                               handleNameClick(page.id);
                             } else {
-                              setEditingCell({ pageId: page.id, propertyId: prop.id });
+                              setEditingCell({ pageId: page.id, propertyName: prop.name });
                             }
                           }}
                         >
-                          {prop.id === 'name' ? (
+                          {prop.name === 'Title' ? (
                             <span className="page-name">{page.title || 'Sans titre'}</span>
                           ) : isEditing ? (
                             prop.type === 'checkbox' ? (
                               <input
                                 type="checkbox"
                                 checked={!!value}
-                                onChange={(e) => handleUpdatePropertyValue(page.id, prop.id, e.target.checked)}
+                                onChange={(e) => handleUpdatePropertyValue(page.id, prop.name, e.target.checked)}
                                 autoFocus
                               />
                             ) : (
@@ -387,13 +489,15 @@ export function DatabaseView() {
                                 defaultValue={value as string}
                                 onBlur={(e) => {
                                   const newValue = prop.type === 'number' ? parseFloat(e.target.value) : e.target.value;
-                                  handleUpdatePropertyValue(page.id, prop.id, newValue);
+                                  handleUpdatePropertyValue(page.id, prop.name, newValue);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     const target = e.target as HTMLInputElement;
                                     const newValue = prop.type === 'number' ? parseFloat(target.value) : target.value;
-                                    handleUpdatePropertyValue(page.id, prop.id, newValue);
+                                    handleUpdatePropertyValue(page.id, prop.name, newValue);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
                                   }
                                 }}
                                 autoFocus
@@ -419,7 +523,7 @@ export function DatabaseView() {
                     e.preventDefault();
                     const formData = new FormData(e.currentTarget);
                     const name = formData.get('name') as string;
-                    const type = formData.get('type') as 'text' | 'number' | 'checkbox' | 'date' | 'select';
+                    const type = formData.get('type') as PropertyDefinition['type'];
                     if (name) {
                       handleAddProperty(name, type);
                     }
@@ -437,10 +541,11 @@ export function DatabaseView() {
                     <div className="form-group">
                       <label>Type</label>
                       <select name="type">
-                        <option value="text">Texte</option>
+                        <option value="rich_text">Texte</option>
                         <option value="number">Nombre</option>
                         <option value="checkbox">Case à cocher</option>
                         <option value="date">Date</option>
+                        <option value="select">Select</option>
                       </select>
                     </div>
                     <div className="modal-actions">

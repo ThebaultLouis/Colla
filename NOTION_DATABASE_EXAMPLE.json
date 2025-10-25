@@ -1,0 +1,340 @@
+{
+  "database": {
+    "object": "database",
+    "id": "668d797c-76fa-4934-9b05-ad288df2d136",
+    "data_sources": [
+      {
+        "id": "c174b72c-d782-432f-8dc0-b647e1c96df6",
+        "name": "Tasks data source"
+      }
+    ],
+    "created_time": "2020-03-17T19:10:04.968Z",
+    "created_by": {
+      "object": "user",
+      "id": "45ee8d13-687b-47ce-a5ca-6e2e45548c4b"
+    },
+    "last_edited_time": "2020-03-17T21:49:37.913Z",
+    "last_edited_by": {
+      "object": "user",
+      "id": "45ee8d13-687b-47ce-a5ca-6e2e45548c4b"
+    },
+    "title": [
+      {
+        "type": "text",
+        "text": {
+          "content": "Task Management",
+          "link": null
+        },
+        "annotations": {
+          "bold": false,
+          "italic": false,
+          "strikethrough": false,
+          "underline": false,
+          "code": false,
+          "color": "default"
+        },
+        "plain_text": "Task Management",
+        "href": null
+      }
+    ],
+    "description": [
+      {
+        "type": "text",
+        "text": {
+          "content": "Track all your tasks and projects",
+          "link": null
+        },
+        "annotations": {
+          "bold": false,
+          "italic": false,
+          "strikethrough": false,
+          "underline": false,
+          "code": false,
+          "color": "default"
+        },
+        "plain_text": "Track all your tasks and projects",
+        "href": null
+      }
+    ],
+    "icon": {
+      "type": "emoji",
+      "emoji": "📋"
+    },
+    "cover": {
+      "type": "external",
+      "external": {
+        "url": "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b"
+      }
+    },
+    "parent": {
+      "type": "page_id",
+      "page_id": "af5f89b5-a8ff-4c56-a5e8-69797d11b9f8"
+    },
+    "url": "https://www.notion.so/668d797c76fa49349b05ad288df2d136",
+    "archived": false,
+    "in_trash": false,
+    "is_inline": false,
+    "public_url": null
+  },
+  "data_source": {
+    "object": "data_source",
+    "id": "c174b72c-d782-432f-8dc0-b647e1c96df6",
+    "properties": {
+      "Title": {
+        "id": "title",
+        "name": "Title",
+        "description": "The task name",
+        "type": "title",
+        "title": {}
+      },
+      "Status": {
+        "id": "yZGK",
+        "name": "Status",
+        "description": "Current status of the task",
+        "type": "status",
+        "status": {
+          "options": [
+            {
+              "id": "1",
+              "name": "Not started",
+              "color": "gray"
+            },
+            {
+              "id": "2",
+              "name": "In progress",
+              "color": "blue"
+            },
+            {
+              "id": "3",
+              "name": "Completed",
+              "color": "green"
+            }
+          ],
+          "groups": [
+            {
+              "id": "g1",
+              "name": "To do",
+              "color": "gray",
+              "option_ids": [
+                "1"
+              ]
+            },
+            {
+              "id": "g2",
+              "name": "In progress",
+              "color": "blue",
+              "option_ids": [
+                "2"
+              ]
+            },
+            {
+              "id": "g3",
+              "name": "Complete",
+              "color": "green",
+              "option_ids": [
+                "3"
+              ]
+            }
+          ]
+        }
+      },
+      "Priority": {
+        "id": "uP|L",
+        "name": "Priority",
+        "description": "Task priority level",
+        "type": "select",
+        "select": {
+          "options": [
+            {
+              "id": "high",
+              "name": "High",
+              "color": "red"
+            },
+            {
+              "id": "medium",
+              "name": "Medium",
+              "color": "yellow"
+            },
+            {
+              "id": "low",
+              "name": "Low",
+              "color": "gray"
+            }
+          ]
+        }
+      },
+      "Due Date": {
+        "id": "mOi{",
+        "name": "Due Date",
+        "description": "When the task is due",
+        "type": "date",
+        "date": {}
+      },
+      "Assignee": {
+        "id": "xY9P",
+        "name": "Assignee",
+        "description": "Person assigned to this task",
+        "type": "people",
+        "people": {}
+      },
+      "Tags": {
+        "id": "qR3s",
+        "name": "Tags",
+        "description": "Task categories",
+        "type": "multi_select",
+        "multi_select": {
+          "options": [
+            {
+              "id": "bug",
+              "name": "Bug",
+              "color": "red"
+            },
+            {
+              "id": "feature",
+              "name": "Feature",
+              "color": "blue"
+            },
+            {
+              "id": "docs",
+              "name": "Documentation",
+              "color": "purple"
+            }
+          ]
+        }
+      },
+      "Completed": {
+        "id": "wT8k",
+        "name": "Completed",
+        "description": "Is this task done?",
+        "type": "checkbox",
+        "checkbox": {}
+      },
+      "Estimate": {
+        "id": "nM2L",
+        "name": "Estimate",
+        "description": "Time estimate in hours",
+        "type": "number",
+        "number": {
+          "format": "number"
+        }
+      },
+      "Created": {
+        "id": "created_time",
+        "name": "Created",
+        "description": "When this task was created",
+        "type": "created_time",
+        "created_time": {}
+      },
+      "Created By": {
+        "id": "created_by",
+        "name": "Created By",
+        "description": "Who created this task",
+        "type": "created_by",
+        "created_by": {}
+      },
+      "Last Edited": {
+        "id": "last_edited_time",
+        "name": "Last Edited",
+        "description": "When this task was last edited",
+        "type": "last_edited_time",
+        "last_edited_time": {}
+      },
+      "Last Edited By": {
+        "id": "last_edited_by",
+        "name": "Last Edited By",
+        "description": "Who last edited this task",
+        "type": "last_edited_by",
+        "last_edited_by": {}
+      },
+      "URL": {
+        "id": "bV5n",
+        "name": "URL",
+        "description": "Related link",
+        "type": "url",
+        "url": {}
+      },
+      "Email": {
+        "id": "cW6m",
+        "name": "Email",
+        "description": "Contact email",
+        "type": "email",
+        "email": {}
+      },
+      "Phone": {
+        "id": "dX7l",
+        "name": "Phone",
+        "description": "Contact phone",
+        "type": "phone_number",
+        "phone_number": {}
+      },
+      "Notes": {
+        "id": "eY8k",
+        "name": "Notes",
+        "description": "Additional notes",
+        "type": "rich_text",
+        "rich_text": {}
+      }
+    },
+    "parent": {
+      "type": "database_id",
+      "database_id": "668d797c-76fa-4934-9b05-ad288df2d136"
+    },
+    "database_parent": {
+      "type": "page_id",
+      "page_id": "af5f89b5-a8ff-4c56-a5e8-69797d11b9f8"
+    },
+    "created_time": "2020-03-17T19:10:04.968Z",
+    "created_by": {
+      "object": "user",
+      "id": "45ee8d13-687b-47ce-a5ca-6e2e45548c4b"
+    },
+    "last_edited_time": "2020-03-17T21:49:37.913Z",
+    "last_edited_by": {
+      "object": "user",
+      "id": "45ee8d13-687b-47ce-a5ca-6e2e45548c4b"
+    },
+    "title": [
+      {
+        "type": "text",
+        "text": {
+          "content": "Tasks data source",
+          "link": null
+        },
+        "annotations": {
+          "bold": false,
+          "italic": false,
+          "strikethrough": false,
+          "underline": false,
+          "code": false,
+          "color": "default"
+        },
+        "plain_text": "Tasks data source",
+        "href": null
+      }
+    ],
+    "description": [],
+    "icon": null,
+    "archived": false,
+    "in_trash": false
+  },
+  "explanation": {
+    "hierarchy": "Database -> DataSource -> Pages",
+    "database": {
+      "purpose": "Permission container and UI representation",
+      "contains": "List of data sources (by id and name reference)",
+      "metadata": "title, description, icon, cover, parent, timestamps, users"
+    },
+    "data_source": {
+      "purpose": "Actual table/collection with schema",
+      "contains": "Property schema definitions (column types and config)",
+      "parent": "References parent database",
+      "database_parent": "References database's parent (grandparent)"
+    },
+    "key_differences": {
+      "properties_in_data_source": "Schema definitions (what columns exist, their types)",
+      "properties_in_page": "Property values (actual data for each property)",
+      "title_property": "Always has id 'title', special property type",
+      "system_properties": "created_time, created_by, last_edited_time, last_edited_by have reserved IDs"
+    }
+  }
+}

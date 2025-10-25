@@ -2,7 +2,7 @@
 // Aligné sur l'API Notion
 export interface PageDTO {
   id: string;
-  object: 'page';
+  object: 'page' | 'database';
   created_time: string;
   last_edited_time: string;
   created_by: any;
@@ -18,7 +18,6 @@ export interface PageDTO {
   // Legacy fields
   title: string;
   content: string;
-  isDatabase: boolean;
 }
 
 // Notion property value types
@@ -132,39 +131,43 @@ export const pageApi = {
   async listRootPages(): Promise<PageDTO[]> {
     const response = await fetch(`${API_BASE_URL}/pages/root`);
     if (!response.ok) throw new Error('Failed to fetch root pages');
-    return response.json();
+    return response.json() as Promise<PageDTO[]>;
   },
 
   async listPages(): Promise<PageDTO[]> {
     const response = await fetch(`${API_BASE_URL}/pages`);
     if (!response.ok) throw new Error('Failed to fetch pages');
-    return response.json();
+    return response.json() as Promise<PageDTO[]>;
   },
 
   async listDatabasePages(databaseId: string): Promise<PageDTO[]> {
     const response = await fetch(`${API_BASE_URL}/pages/${databaseId}/children`);
     if (!response.ok) throw new Error('Failed to fetch database pages');
-    return response.json();
+    return response.json() as Promise<PageDTO[]>;
   },
 
   async getPage(id: string): Promise<PageDTO> {
     const response = await fetch(`${API_BASE_URL}/pages/${id}`);
     if (!response.ok) throw new Error('Failed to fetch page');
-    return response.json();
+    return response.json() as Promise<PageDTO>;
   },
 
-  async createPage(title: string, content = '', isDatabase = false, parentId?: string): Promise<PageDTO> {
+  async createPage(title: string, content = '', objectType: 'page' | 'database' = 'page', parentId?: string): Promise<PageDTO> {
     const response = await fetch(`${API_BASE_URL}/pages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, isDatabase, parentId }),
+      body: JSON.stringify({ title, content, object: objectType, parentId }),
     });
     if (!response.ok) throw new Error('Failed to create page');
-    return response.json();
+    return response.json() as Promise<PageDTO>;
   },
 
   async createDatabase(name: string, description = ''): Promise<PageDTO> {
-    return this.createPage(name, description, true);
+    return this.createPage(name, description, 'database');
+  },
+
+  async createPageInDatabase(databaseId: string, title: string, content = ''): Promise<PageDTO> {
+    return this.createPage(title, content, 'page', databaseId);
   },
 
   async updatePage(id: string, title?: string, content?: string, properties?: Record<string, PropertyValueDTO>): Promise<PageDTO> {

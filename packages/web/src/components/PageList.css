@@ -18,7 +18,13 @@
   color: #37352f;
 }
 
-.new-page-btn {
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.new-page-btn,
+.new-database-btn {
   padding: 6px 12px;
   background: rgba(35, 131, 226, 0.07);
   color: #2383e2;
@@ -27,10 +33,32 @@
   font-weight: 500;
   font-size: 14px;
   transition: background-color 0.15s ease;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.new-page-btn:hover {
+.new-page-btn:hover,
+.new-database-btn:hover:not(:disabled) {
   background: rgba(35, 131, 226, 0.14);
+}
+
+.new-database-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.section {
+  margin-bottom: 48px;
+}
+
+.section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.65);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .pages-grid {
@@ -48,11 +76,26 @@
   transition: all 0.15s ease;
   background-color: #ffffff;
   cursor: pointer;
+  position: relative;
 }
 
 .page-card:hover {
   background-color: rgba(0, 0, 0, 0.02);
   border-color: rgba(0, 0, 0, 0.1);
+}
+
+.database-card {
+  border-color: rgba(35, 131, 226, 0.2);
+}
+
+.database-card:hover {
+  background-color: rgba(35, 131, 226, 0.02);
+  border-color: rgba(35, 131, 226, 0.3);
+}
+
+.card-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
 }
 
 .page-card h3 {
