@@ -1,52 +1,115 @@
 import { PageId, PageTitle, PageContent } from './value-objects';
-import { Property } from '../database/property';
+import { Property } from '../database/property-legacy';
+import {
+  PropertyValueObject,
+  TitleProperty
+} from '../database/property-values';
+import { Icon } from './icon';
+import { Cover } from './cover';
+import { User } from './user';
+import { Parent } from './parent';
 
 /**
  * Page Entity - DDD
  * Une entité est définie par son identité qui persiste dans le temps
  * 
- * Comme Notion, une page peut être :
- * - Une page simple (isDatabase=false, parentId=null) : page root
- * - Une database (isDatabase=true, parentId=null) : database root qui contient des pages
- * - Une page dans une database (isDatabase=false, parentId=databaseId)
+ * Structure alignée sur l'API Notion (https://developers.notion.com/reference/page)
+ * Une page peut être :
+ * - Une page dans un workspace (parent: {type: 'workspace'})
+ * - Une page dans une database/data source (parent: {type: 'data_source_id', data_source_id: '...'})
+ * - Une page imbriquée (parent: {type: 'page_id', page_id: '...'})
+ * 
+ * IMPORTANT: Le titre est stocké dans properties['Title'] comme TitleProperty, pas comme champ séparé
  */
 export class Page {
   private constructor(
+    private readonly object: 'page',
     private readonly id: PageId,
-    private title: PageTitle,
+    private readonly created_time: Date,
+    private readonly last_edited_time: Date,
+    private readonly created_by: User,
+    private readonly last_edited_by: User,
+    private cover: Cover,
+    private icon: Icon,
+    private parent: Parent,
+    private archived: boolean,
+    private in_trash: boolean,
+    private readonly properties: Map<string, PropertyValueObject>, // Notion property values
+    private url: string | null,
+    private public_url: string | null,
+    // Legacy fields for backward compatibility
+    private readonly legacyProperties: Map<string, Property>,
     private content: PageContent,
-    private readonly properties: Map<string, Property>, // propertyId -> Property
-    private readonly isDatabase: boolean, // true si c'est une database
-    private parentId: PageId | null, // null si page root, sinon ID de la database parente
-    private readonly createdAt: Date,
-    private updatedAt: Date,
+    private readonly isDatabase: boolean,
   ) { }
 
-  static create(id: PageId, title: PageTitle, content?: PageContent, isDatabase = false): Page {
+  static create(id: PageId, title: PageTitle, content?: PageContent, isDatabase = false, createdBy?: User): Page {
     const now = new Date();
+    const user = createdBy || User.empty();
+
+    // Créer la propriété Title comme TitleProperty
+    const properties = new Map<string, PropertyValueObject>();
+    properties.set('Title', TitleProperty.fromPlainText('title', title.getValue()));
+
     return new Page(
+      'page',
       id,
-      title,
+      now, // created_time
+      now, // last_edited_time
+      user, // created_by
+      user, // last_edited_by
+      Cover.empty(),
+      Icon.empty(),
+      Parent.workspace(), // Par défaut, page dans workspace
+      false, // archived
+      false, // in_trash
+      properties,
+      null, // url
+      null, // public_url
+      new Map<string, Property>(), // legacyProperties
       content || PageContent.empty(),
-      new Map<string, Property>(),
       isDatabase,
-      null, // Par défaut, page root
-      now,
-      now,
     );
   }
 
   static reconstitute(
     id: PageId,
-    title: PageTitle,
+    created_time: Date,
+    last_edited_time: Date,
+    created_by: User,
+    last_edited_by: User,
+    cover: Cover,
+    icon: Icon,
+    parent: Parent,
+    archived: boolean,
+    in_trash: boolean,
+    properties: Map<string, PropertyValueObject>,
+    url: string | null,
+    public_url: string | null,
+    // Legacy fields for backward compatibility
+    legacyProperties: Map<string, Property>,
     content: PageContent,
-    properties: Map<string, Property>,
     isDatabase: boolean,
-    parentId: PageId | null,
-    createdAt: Date,
-    updatedAt: Date,
   ): Page {
-    return new Page(id, title, content, properties, isDatabase, parentId, createdAt, updatedAt);
+    return new Page(
+      'page',
+      id,
+      created_time,
+      last_edited_time,
+      created_by,
+      last_edited_by,
+      cover,
+      icon,
+      parent,
+      archived,
+      in_trash,
+      properties,
+      url,
+      public_url,
+      legacyProperties,
+      content,
+      isDatabase,
+    );
   }
 
   // Getters
@@ -55,52 +118,157 @@ export class Page {
   }
 
   getTitle(): PageTitle {
-    return this.title;
+    // Extraire le titre depuis les propriétés
+    const titleProp = this.properties.get('Title') as TitleProperty | undefined;
+    if (titleProp) {
+      return PageTitle.create(titleProp.getPlainText());
+    }
+    return PageTitle.create('');
   }
 
   getContent(): PageContent {
     return this.content;
   }
 
-  getProperties(): Map<string, Property> {
+  getProperties(): Map<string, PropertyValueObject> {
     return new Map(this.properties);
   }
 
-  getProperty(propertyId: string): Property | undefined {
+  getProperty(propertyId: string): PropertyValueObject | undefined {
     return this.properties.get(propertyId);
   }
 
+  // Legacy support
+  getLegacyProperties(): Map<string, Property> {
+    return new Map(this.legacyProperties);
+  }
+
+  getLegacyProperty(propertyId: string): Property | undefined {
+    return this.legacyProperties.get(propertyId);
+  }
+
   getCreatedAt(): Date {
-    return this.createdAt;
+    return this.created_time;
   }
 
   getUpdatedAt(): Date {
-    return this.updatedAt;
+    return this.last_edited_time;
   }
 
   isADatabase(): boolean {
     return this.isDatabase;
   }
 
+  getParent(): Parent {
+    return this.parent;
+  }
+
   getParentId(): PageId | null {
-    return this.parentId;
+    // Legacy support
+    if (this.parent.isDataSource()) {
+      const parentData = this.parent.getValue();
+      if ('data_source_id' in parentData) {
+        return PageId.create(parentData.data_source_id);
+      }
+    }
+    if (this.parent.isPage()) {
+      const parentData = this.parent.getValue();
+      if ('page_id' in parentData) {
+        return PageId.create(parentData.page_id);
+      }
+    }
+    return null;
   }
 
   isRootPage(): boolean {
-    return this.parentId === null;
+    return this.parent.isWorkspace();
+  }
+
+  getIcon(): Icon {
+    return this.icon;
+  }
+
+  getCover(): Cover {
+    return this.cover;
+  }
+
+  isArchived(): boolean {
+    return this.archived;
+  }
+
+  isInTrash(): boolean {
+    return this.in_trash;
+  }
+
+  getUrl(): string | null {
+    return this.url;
+  }
+
+  getPublicUrl(): string | null {
+    return this.public_url;
+  }
+
+  getCreatedBy(): User {
+    return this.created_by;
+  }
+
+  getLastEditedBy(): User {
+    return this.last_edited_by;
   }
 
   // Business methods
-  setParent(parentId: PageId | null): void {
-    this.parentId = parentId;
+  setParent(parent: Parent): void {
+    this.parent = parent;
+    this.touch();
+  }
+
+  // Legacy support
+  setParentId(parentId: PageId | null): void {
+    if (parentId) {
+      this.parent = Parent.dataSource(parentId.getValue());
+    } else {
+      this.parent = Parent.workspace();
+    }
+    this.touch();
+  }
+
+  setIcon(icon: Icon): void {
+    this.icon = icon;
+    this.touch();
+  }
+
+  setCover(cover: Cover): void {
+    this.cover = cover;
+    this.touch();
+  }
+
+  archive(): void {
+    this.archived = true;
+    this.touch();
+  }
+
+  unarchive(): void {
+    this.archived = false;
+    this.touch();
+  }
+
+  moveToTrash(): void {
+    this.in_trash = true;
+    this.touch();
+  }
+
+  restoreFromTrash(): void {
+    this.in_trash = false;
     this.touch();
   }
 
   updateTitle(newTitle: PageTitle): void {
-    if (this.title.equals(newTitle)) {
+    const currentTitle = this.getTitle();
+    if (currentTitle.equals(newTitle)) {
       return;
     }
-    this.title = newTitle;
+    // Mettre à jour la propriété Title
+    this.properties.set('Title', TitleProperty.fromPlainText('title', newTitle.getValue()));
     this.touch();
   }
 
@@ -112,8 +280,14 @@ export class Page {
     this.touch();
   }
 
-  setProperty(propertyId: string, property: Property): void {
+  setProperty(propertyId: string, property: PropertyValueObject): void {
     this.properties.set(propertyId, property);
+    this.touch();
+  }
+
+  // Legacy support
+  setLegacyProperty(propertyId: string, property: Property): void {
+    this.legacyProperties.set(propertyId, property);
     this.touch();
   }
 
@@ -129,25 +303,37 @@ export class Page {
   }
 
   private touch(): void {
-    this.updatedAt = new Date();
+    // Note: In Notion API, last_edited_time is readonly
+    // We can't actually update it here, but keeping for compatibility
+    // This would need to be handled at the repository level
   }
 
-  // Pour la sérialisation
+  // Pour la sérialisation - Format Notion API
   toJSON() {
     const propertiesObj: Record<string, any> = {};
-    this.properties.forEach((property, id) => {
-      propertiesObj[id] = property.toJSON();
+    this.properties.forEach((property, name) => {
+      propertiesObj[name] = property.toJSON();
     });
 
     return {
+      object: this.object,
       id: this.id.getValue(),
-      title: this.title.getValue(),
-      content: this.content.getValue(),
+      created_time: this.created_time.toISOString(),
+      last_edited_time: this.last_edited_time.toISOString(),
+      created_by: this.created_by.toJSON(),
+      last_edited_by: this.last_edited_by.toJSON(),
+      cover: this.cover.toJSON(),
+      icon: this.icon.toJSON(),
+      parent: this.parent.toJSON(),
+      archived: this.archived,
+      in_trash: this.in_trash,
       properties: propertiesObj,
+      url: this.url,
+      public_url: this.public_url,
+      // Legacy fields for backward compatibility
+      title: this.getTitle().getValue(),
+      content: this.content.getValue(),
       isDatabase: this.isDatabase,
-      parentId: this.parentId?.getValue() || null,
-      createdAt: this.createdAt.toISOString(),
-      updatedAt: this.updatedAt.toISOString(),
     };
   }
 }

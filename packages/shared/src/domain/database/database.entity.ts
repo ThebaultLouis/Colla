@@ -1,6 +1,6 @@
 import { PageId } from '../page/value-objects';
 import { DatabaseId, DatabaseName, DatabaseDescription } from './value-objects';
-import { PropertyName } from './property';
+import { PropertyName } from './property-legacy';
 
 /**
  * Database Entity - DDD

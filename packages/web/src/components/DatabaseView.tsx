@@ -1,12 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { pageApi, PageDTO, PropertyDTO } from '../api/page.api';
+import {
+  pageApi,
+  PageDTO,
+  PropertyValueDTO,
+  TitlePropertyDTO,
+  NumberPropertyDTO,
+  CheckboxPropertyDTO,
+  SelectPropertyDTO,
+  DatePropertyDTO
+} from '../api/page.api';
 import './DatabaseView.css';
 
 interface PropertyDefinition {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'checkbox' | 'date' | 'select';
+  type: 'title' | 'rich_text' | 'number' | 'checkbox' | 'date' | 'select' | 'status' | 'url' | 'email' | 'multi_select';
+}
+
+// Helper pour extraire le texte d'une TitleProperty
+function getTitleText(prop: PropertyValueDTO | undefined): string {
+  if (!prop || prop.type !== 'title') return '';
+  const titleProp = prop as TitlePropertyDTO;
+  return titleProp.title.map(t => t.plain_text).join('');
+}
+
+// Helper pour extraire la valeur d'une propriété
+function getPropertyDisplayValue(prop: PropertyValueDTO | undefined): string {
+  if (!prop) return '';
+
+  switch (prop.type) {
+    case 'title':
+      return getTitleText(prop);
+    case 'rich_text':
+      return ''; // TODO: implémenter
+    case 'number':
+      return (prop as NumberPropertyDTO).number?.toString() || '';
+    case 'checkbox':
+      return (prop as CheckboxPropertyDTO).checkbox ? '✓' : '';
+    case 'select':
+      return (prop as SelectPropertyDTO).select?.name || '';
+    case 'status':
+      return (prop as any).status?.name || '';
+    case 'date':
+      return (prop as DatePropertyDTO).date?.start || '';
+    case 'url':
+      return (prop as any).url || '';
+    case 'email':
+      return (prop as any).email || '';
+    case 'multi_select':
+      return (prop as any).multi_select?.map((s: any) => s.name).join(', ') || '';
+    default:
+      return '';
+  }
 }
 
 export function DatabaseView() {
@@ -49,19 +95,26 @@ export function DatabaseView() {
       setDescription(dbData.content);
 
       // Initialiser les propriétés de la database
-      // Si la database a des propriétés, ce sont les définitions de colonnes
-      const columnDefinitions: PropertyDefinition[] = [
-        { id: 'name', name: 'Nom', type: 'text' }
-      ];
+      // Si la database a des propriétés, ce sont les valeurs des propriétés
+      const columnDefinitions: PropertyDefinition[] = [];
 
-      // Restaurer les colonnes personnalisées depuis les propriétés de la database
+      // Restaurer les colonnes depuis les propriétés de la première page ou de la database
       if (dbData.properties) {
-        Object.entries(dbData.properties).forEach(([propId, propData]) => {
+        Object.entries(dbData.properties).forEach(([propName, propData]) => {
           columnDefinitions.push({
-            id: propId,
-            name: propData.name,
-            type: propData.type as 'text' | 'number' | 'checkbox' | 'date' | 'select'
+            id: propData.id,
+            name: propName,
+            type: propData.type
           });
+        });
+      }
+
+      // Si pas de colonnes, ajouter au moins la colonne Title par défaut
+      if (columnDefinitions.length === 0) {
+        columnDefinitions.push({
+          id: 'title',
+          name: 'Title',
+          type: 'title'
         });
       }
 
@@ -110,43 +163,23 @@ export function DatabaseView() {
     navigate(`/page/${pageId}`);
   };
 
-  const handleAddProperty = async (propertyName: string, propertyType: 'text' | 'number' | 'checkbox' | 'date' | 'select') => {
+  const handleAddProperty = async (propertyName: string, propertyType: PropertyDefinition['type']) => {
     const newProperty: PropertyDefinition = {
       id: `prop_${Date.now()}`,
       name: propertyName,
       type: propertyType,
     };
-    
+
     const updatedProperties = [...properties, newProperty];
     setProperties(updatedProperties);
     setShowAddProperty(false);
 
-    // Sauvegarder la définition de la colonne dans la database
-    if (id && id !== 'new') {
-      try {
-        // Construire les propriétés de la database (définitions de colonnes)
-        const dbProperties: Record<string, PropertyDTO> = {};
-        
-        // Ajouter toutes les colonnes sauf 'name' qui est la colonne par défaut
-        updatedProperties.forEach(prop => {
-          if (prop.id !== 'name') {
-            dbProperties[prop.id] = {
-              name: prop.name,
-              type: prop.type,
-              value: '' // Les colonnes n'ont pas de valeur, juste une définition
-            };
-          }
-        });
-
-        await pageApi.updatePage(id, name, description, dbProperties);
-        console.log('✅ Column definition saved to database');
-      } catch (error) {
-        console.error('Failed to save column definition:', error);
-      }
-    }
+    // Note: Les définitions de colonnes sont maintenant inférées des propriétés des pages
+    // Pas besoin de les sauvegarder séparément dans la database
+    console.log('✅ Property column added:', propertyName, propertyType);
   };
 
-  const handleUpdatePropertyValue = async (pageId: string, propertyId: string, value: string | number | boolean) => {
+  const handleUpdatePropertyValue = async (pageId: string, propertyName: string, value: string | number | boolean) => {
     try {
       const page = pages.find(p => p.id === pageId);
       if (!page) {
@@ -154,28 +187,86 @@ export function DatabaseView() {
         return;
       }
 
-      // Trouver le type de la propriété
-      const propDef = properties.find(p => p.id === propertyId);
+      // Trouver la définition de la propriété
+      const propDef = properties.find(p => p.name === propertyName);
       if (!propDef) {
-        console.error('Property definition not found:', propertyId);
+        console.error('Property definition not found:', propertyName);
         return;
       }
 
+      // Créer la nouvelle valeur de propriété au format Notion
+      let newPropertyValue: PropertyValueDTO;
+
+      switch (propDef.type) {
+        case 'title':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'title',
+            title: [{
+              type: 'text',
+              text: { content: String(value), link: null },
+              annotations: {
+                bold: false,
+                italic: false,
+                strikethrough: false,
+                underline: false,
+                code: false,
+                color: 'default'
+              },
+              plain_text: String(value),
+              href: null
+            }]
+          };
+          break;
+
+        case 'number':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'number',
+            number: typeof value === 'number' ? value : parseFloat(String(value)) || null
+          };
+          break;
+
+        case 'checkbox':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'checkbox',
+            checkbox: Boolean(value)
+          };
+          break;
+
+        case 'select':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'select',
+            select: value ? { name: String(value), color: 'default' } : null
+          };
+          break;
+
+        case 'date':
+          newPropertyValue = {
+            id: propDef.id,
+            type: 'date',
+            date: value ? { start: String(value), end: null, time_zone: null } : null
+          };
+          break;
+
+        default:
+          console.error('Unsupported property type:', propDef.type);
+          return;
+      }
+
       // Mettre à jour les propriétés de la page
-      const updatedProperties: Record<string, PropertyDTO> = {
+      const updatedProperties: Record<string, PropertyValueDTO> = {
         ...(page.properties || {}),
-        [propertyId]: {
-          name: propDef.name,
-          type: propDef.type,
-          value: value,
-        },
+        [propertyName]: newPropertyValue,
       };
 
       console.log('Updating page properties:', {
         pageId,
-        propertyId,
+        propertyName,
         value,
-        updatedProperties
+        newPropertyValue
       });
 
       await pageApi.updatePage(pageId, page.title, page.content, updatedProperties);
@@ -191,10 +282,10 @@ export function DatabaseView() {
     }
   };
 
-  const getPropertyValue = (page: PageDTO, propertyId: string): string | number | boolean => {
-    const prop = page.properties?.[propertyId];
+  const getPropertyValue = (page: PageDTO, propertyName: string): string | number | boolean => {
+    const prop = page.properties?.[propertyName];
     if (!prop) return '';
-    return prop.value || '';
+    return getPropertyDisplayValue(prop);
   };
 
   if (loading) {

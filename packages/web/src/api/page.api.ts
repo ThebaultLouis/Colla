@@ -1,15 +1,125 @@
 // DTO défini localement pour éviter les problèmes d'import CommonJS/ESM
+// Aligné sur l'API Notion
 export interface PageDTO {
   id: string;
+  object: 'page';
+  created_time: string;
+  last_edited_time: string;
+  created_by: any;
+  last_edited_by: any;
+  cover: any;
+  icon: any;
+  parent: any;
+  archived: boolean;
+  in_trash: boolean;
+  properties: Record<string, PropertyValueDTO>;
+  url: string | null;
+  public_url: string | null;
+  // Legacy fields
   title: string;
   content: string;
-  properties: Record<string, PropertyDTO>;
   isDatabase: boolean;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
+// Notion property value types
+export interface TitlePropertyDTO {
+  id: string;
+  type: 'title';
+  title: Array<{
+    type: 'text';
+    text: {
+      content: string;
+      link: any;
+    };
+    annotations: any;
+    plain_text: string;
+    href: string | null;
+  }>;
+}
+
+export interface RichTextPropertyDTO {
+  id: string;
+  type: 'rich_text';
+  rich_text: Array<any>;
+}
+
+export interface NumberPropertyDTO {
+  id: string;
+  type: 'number';
+  number: number | null;
+}
+
+export interface SelectPropertyDTO {
+  id: string;
+  type: 'select';
+  select: {
+    id?: string;
+    name: string;
+    color: string;
+  } | null;
+}
+
+export interface StatusPropertyDTO {
+  id: string;
+  type: 'status';
+  status: {
+    id: string;
+    name: string;
+    color: string;
+  } | null;
+}
+
+export interface DatePropertyDTO {
+  id: string;
+  type: 'date';
+  date: {
+    start: string;
+    end: string | null;
+    time_zone: string | null;
+  } | null;
+}
+
+export interface CheckboxPropertyDTO {
+  id: string;
+  type: 'checkbox';
+  checkbox: boolean;
+}
+
+export interface UrlPropertyDTO {
+  id: string;
+  type: 'url';
+  url: string | null;
+}
+
+export interface EmailPropertyDTO {
+  id: string;
+  type: 'email';
+  email: string | null;
+}
+
+export interface MultiSelectPropertyDTO {
+  id: string;
+  type: 'multi_select';
+  multi_select: Array<{
+    id?: string;
+    name: string;
+    color: string;
+  }>;
+}
+
+export type PropertyValueDTO =
+  | TitlePropertyDTO
+  | RichTextPropertyDTO
+  | NumberPropertyDTO
+  | SelectPropertyDTO
+  | StatusPropertyDTO
+  | DatePropertyDTO
+  | CheckboxPropertyDTO
+  | UrlPropertyDTO
+  | EmailPropertyDTO
+  | MultiSelectPropertyDTO;
+
+// Legacy property DTO
 export interface PropertyDTO {
   name: string;
   type: string;
@@ -57,14 +167,14 @@ export const pageApi = {
     return this.createPage(name, description, true);
   },
 
-  async updatePage(id: string, title?: string, content?: string, properties?: Record<string, PropertyDTO>): Promise<PageDTO> {
+  async updatePage(id: string, title?: string, content?: string, properties?: Record<string, PropertyValueDTO>): Promise<PageDTO> {
     const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, content, properties }),
     });
     if (!response.ok) throw new Error('Failed to update page');
-    return response.json();
+    return response.json() as Promise<PageDTO>;
   },
 
   async deletePage(id: string): Promise<void> {

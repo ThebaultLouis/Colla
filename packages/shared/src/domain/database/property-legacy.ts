@@ -37,7 +37,7 @@ export class PropertyName {
   }
 }
 
-export class PropertyValue {
+export class LegacyPropertyValue {
   private constructor(
     private readonly type: PropertyType,
     private readonly value: string | number | boolean | Date | string[],
@@ -45,64 +45,64 @@ export class PropertyValue {
     this.validate();
   }
 
-  static text(value: string): PropertyValue {
-    return new PropertyValue(PropertyType.TEXT, value);
+  static text(value: string): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.TEXT, value);
   }
 
-  static number(value: number): PropertyValue {
-    return new PropertyValue(PropertyType.NUMBER, value);
+  static number(value: number): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.NUMBER, value);
   }
 
-  static select(value: string): PropertyValue {
-    return new PropertyValue(PropertyType.SELECT, value);
+  static select(value: string): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.SELECT, value);
   }
 
-  static multiSelect(values: string[]): PropertyValue {
-    return new PropertyValue(PropertyType.MULTI_SELECT, values);
+  static multiSelect(values: string[]): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.MULTI_SELECT, values);
   }
 
-  static date(value: Date): PropertyValue {
-    return new PropertyValue(PropertyType.DATE, value);
+  static date(value: Date): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.DATE, value);
   }
 
-  static checkbox(value: boolean): PropertyValue {
-    return new PropertyValue(PropertyType.CHECKBOX, value);
+  static checkbox(value: boolean): LegacyPropertyValue {
+    return new LegacyPropertyValue(PropertyType.CHECKBOX, value);
   }
 
-  static url(value: string): PropertyValue {
+  static url(value: string): LegacyPropertyValue {
     const urlPattern = /^https?:\/\/.+/;
     if (!urlPattern.test(value)) {
       throw new Error('Invalid URL format');
     }
-    return new PropertyValue(PropertyType.URL, value);
+    return new LegacyPropertyValue(PropertyType.URL, value);
   }
 
-  static email(value: string): PropertyValue {
+  static email(value: string): LegacyPropertyValue {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(value)) {
       throw new Error('Invalid email format');
     }
-    return new PropertyValue(PropertyType.EMAIL, value);
+    return new LegacyPropertyValue(PropertyType.EMAIL, value);
   }
 
-  static fromJSON(data: { type: PropertyType; value: any }): PropertyValue {
+  static fromJSON(data: { type: PropertyType; value: any }): LegacyPropertyValue {
     switch (data.type) {
       case PropertyType.TEXT:
-        return PropertyValue.text(data.value);
+        return LegacyPropertyValue.text(data.value);
       case PropertyType.NUMBER:
-        return PropertyValue.number(data.value);
+        return LegacyPropertyValue.number(data.value);
       case PropertyType.SELECT:
-        return PropertyValue.select(data.value);
+        return LegacyPropertyValue.select(data.value);
       case PropertyType.MULTI_SELECT:
-        return PropertyValue.multiSelect(data.value);
+        return LegacyPropertyValue.multiSelect(data.value);
       case PropertyType.DATE:
-        return PropertyValue.date(new Date(data.value));
+        return LegacyPropertyValue.date(new Date(data.value));
       case PropertyType.CHECKBOX:
-        return PropertyValue.checkbox(data.value);
+        return LegacyPropertyValue.checkbox(data.value);
       case PropertyType.URL:
-        return PropertyValue.url(data.value);
+        return LegacyPropertyValue.url(data.value);
       case PropertyType.EMAIL:
-        return PropertyValue.email(data.value);
+        return LegacyPropertyValue.email(data.value);
       default:
         throw new Error(`Unknown property type: ${data.type}`);
     }
@@ -147,7 +147,7 @@ export class PropertyValue {
     return this.value;
   }
 
-  equals(other: PropertyValue): boolean {
+  equals(other: LegacyPropertyValue): boolean {
     if (this.type !== other.type) return false;
 
     if (Array.isArray(this.value) && Array.isArray(other.value)) {
@@ -168,16 +168,16 @@ export class PropertyValue {
 export class Property {
   private constructor(
     private readonly name: PropertyName,
-    private value: PropertyValue,
+    private value: LegacyPropertyValue,
   ) { }
 
-  static create(name: PropertyName, value: PropertyValue): Property {
+  static create(name: PropertyName, value: LegacyPropertyValue): Property {
     return new Property(name, value);
   }
 
   static reconstitute(data: { name: string; type: PropertyType; value: any }): Property {
     const name = PropertyName.create(data.name);
-    const value = PropertyValue.fromJSON({ type: data.type, value: data.value });
+    const value = LegacyPropertyValue.fromJSON({ type: data.type, value: data.value });
     return new Property(name, value);
   }
 
@@ -185,11 +185,11 @@ export class Property {
     return this.name;
   }
 
-  getValue(): PropertyValue {
+  getValue(): LegacyPropertyValue {
     return this.value;
   }
 
-  updateValue(newValue: PropertyValue): void {
+  updateValue(newValue: LegacyPropertyValue): void {
     if (newValue.getType() !== this.value.getType()) {
       throw new Error('Cannot change property type');
     }

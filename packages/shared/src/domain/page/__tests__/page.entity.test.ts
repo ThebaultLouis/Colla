@@ -1,5 +1,7 @@
 import { Page } from '../page.entity';
 import { PageId, PageTitle, PageContent } from '../value-objects';
+import { Icon } from '../icon';
+import { Cover } from '../cover';
 
 describe('Page Entity', () => {
   describe('create', () => {
@@ -35,7 +37,20 @@ describe('Page Entity', () => {
       const createdAt = new Date('2025-01-01');
       const updatedAt = new Date('2025-01-02');
 
-      const page = Page.reconstitute(id, title, content, new Map(), false, null, createdAt, updatedAt);
+      const page = Page.reconstitute(
+        id,
+        title,
+        content,
+        new Map(),
+        false,
+        null,
+        Icon.empty(),
+        Cover.empty(),
+        false,
+        false,
+        createdAt,
+        updatedAt
+      );
 
       expect(page.getId().getValue()).toBe('page-1');
       expect(page.getCreatedAt()).toEqual(createdAt);

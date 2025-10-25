@@ -1,0 +1,103 @@
+{
+  "object": "page",
+  "id": "example-page-123",
+  "created_time": "2025-10-25T10:00:00.000Z",
+  "last_edited_time": "2025-10-25T12:30:00.000Z",
+  "created_by": {
+    "object": "user",
+    "id": "user-456"
+  },
+  "last_edited_by": {
+    "object": "user",
+    "id": "user-789"
+  },
+  "cover": null,
+  "icon": {
+    "type": "emoji",
+    "emoji": "🐞"
+  },
+  "parent": {
+    "type": "data_source_id",
+    "data_source_id": "datasource-abc-123"
+  },
+  "archived": false,
+  "in_trash": false,
+  "properties": {
+    "Title": {
+      "id": "title",
+      "type": "title",
+      "title": [
+        {
+          "type": "text",
+          "text": {
+            "content": "Bug bash",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "Bug bash",
+          "href": null
+        }
+      ]
+    },
+    "Status": {
+      "id": "Z%3ClH",
+      "type": "status",
+      "status": {
+        "id": "86ddb6ec-0627-47f8-800d-b65afd28be13",
+        "name": "Not started",
+        "color": "default"
+      }
+    },
+    "Due date": {
+      "id": "M%3BBw",
+      "type": "date",
+      "date": {
+        "start": "2023-02-23",
+        "end": null,
+        "time_zone": null
+      }
+    },
+    "Priority": {
+      "id": "priority",
+      "type": "select",
+      "select": {
+        "id": "select-high",
+        "name": "High",
+        "color": "red"
+      }
+    },
+    "Completed": {
+      "id": "completed",
+      "type": "checkbox",
+      "checkbox": false
+    },
+    "Tags": {
+      "id": "tags",
+      "type": "multi_select",
+      "multi_select": [
+        {
+          "id": "tag-bug",
+          "name": "Bug",
+          "color": "red"
+        },
+        {
+          "id": "tag-urgent",
+          "name": "Urgent",
+          "color": "orange"
+        }
+      ]
+    }
+  },
+  "url": "https://www.notion.so/Bug-bash-example123",
+  "public_url": null,
+  "title": "Bug bash",
+  "content": "This is the content of the page",
+  "isDatabase": false
+}
