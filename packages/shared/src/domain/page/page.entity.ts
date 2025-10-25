@@ -19,11 +19,13 @@ import { Parent } from './parent';
  * - Une page dans une database/data source (parent: {type: 'data_source_id', data_source_id: '...'})
  * - Une page imbriquée (parent: {type: 'page_id', page_id: '...'})
  * 
+ * Le champ 'object' détermine si c'est une page ('page') ou une database ('database')
+ * 
  * IMPORTANT: Le titre est stocké dans properties['Title'] comme TitleProperty, pas comme champ séparé
  */
 export class Page {
   private constructor(
-    private readonly object: 'page',
+    private readonly object: 'page' | 'database',
     private readonly id: PageId,
     private readonly created_time: Date,
     private readonly last_edited_time: Date,
@@ -40,10 +42,9 @@ export class Page {
     // Legacy fields for backward compatibility
     private readonly legacyProperties: Map<string, Property>,
     private content: PageContent,
-    private readonly isDatabase: boolean,
   ) { }
 
-  static create(id: PageId, title: PageTitle, content?: PageContent, isDatabase = false, createdBy?: User): Page {
+  static create(id: PageId, title: PageTitle, content?: PageContent, objectType: 'page' | 'database' = 'page', createdBy?: User): Page {
     const now = new Date();
     const user = createdBy || User.empty();
 
@@ -52,7 +53,7 @@ export class Page {
     properties.set('Title', TitleProperty.fromPlainText('title', title.getValue()));
 
     return new Page(
-      'page',
+      objectType,
       id,
       now, // created_time
       now, // last_edited_time
@@ -68,11 +69,11 @@ export class Page {
       null, // public_url
       new Map<string, Property>(), // legacyProperties
       content || PageContent.empty(),
-      isDatabase,
     );
   }
 
   static reconstitute(
+    object: 'page' | 'database',
     id: PageId,
     created_time: Date,
     last_edited_time: Date,
@@ -89,10 +90,9 @@ export class Page {
     // Legacy fields for backward compatibility
     legacyProperties: Map<string, Property>,
     content: PageContent,
-    isDatabase: boolean,
   ): Page {
     return new Page(
-      'page',
+      object,
       id,
       created_time,
       last_edited_time,
@@ -108,11 +108,14 @@ export class Page {
       public_url,
       legacyProperties,
       content,
-      isDatabase,
     );
   }
 
   // Getters
+  getObject(): 'page' | 'database' {
+    return this.object;
+  }
+
   getId(): PageId {
     return this.id;
   }
@@ -121,7 +124,17 @@ export class Page {
     // Extraire le titre depuis les propriétés
     const titleProp = this.properties.get('Title') as TitleProperty | undefined;
     if (titleProp) {
-      return PageTitle.create(titleProp.getPlainText());
+      // Si c'est une vraie instance avec getPlainText(), l'utiliser
+      if (typeof (titleProp as any).getPlainText === 'function') {
+        return PageTitle.create((titleProp as any).getPlainText());
+      }
+      // Sinon, c'est un objet DTO simple, extraire le texte manuellement
+      if ((titleProp as any).title && Array.isArray((titleProp as any).title)) {
+        const plainText = (titleProp as any).title
+          .map((t: any) => t.plain_text || '')
+          .join('');
+        return PageTitle.create(plainText);
+      }
     }
     return PageTitle.create('');
   }
@@ -156,7 +169,7 @@ export class Page {
   }
 
   isADatabase(): boolean {
-    return this.isDatabase;
+    return this.object === 'database';
   }
 
   getParent(): Parent {
@@ -312,7 +325,11 @@ export class Page {
   toJSON() {
     const propertiesObj: Record<string, any> = {};
     this.properties.forEach((property, name) => {
-      propertiesObj[name] = property.toJSON();
+      // PropertyValueObject peut être un objet simple (depuis l'API)
+      // ou un objet avec toJSON() (depuis le domaine)
+      propertiesObj[name] = typeof property.toJSON === 'function'
+        ? property.toJSON()
+        : property;
     });
 
     return {
@@ -333,7 +350,6 @@ export class Page {
       // Legacy fields for backward compatibility
       title: this.getTitle().getValue(),
       content: this.content.getValue(),
-      isDatabase: this.isDatabase,
     };
   }
 }

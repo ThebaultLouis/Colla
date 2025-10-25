@@ -1,23 +1,24 @@
 /**
- * Database Value Objects - DDD
+ * Legacy Database Value Objects - DDD
+ * These are kept for backward compatibility with old repository format
  */
 
-export class DatabaseId {
+export class LegacyDatabaseId {
   private constructor(private readonly value: string) {
     if (!value || value.trim().length === 0) {
       throw new Error('DatabaseId cannot be empty');
     }
   }
 
-  static create(id: string): DatabaseId {
-    return new DatabaseId(id);
+  static create(id: string): LegacyDatabaseId {
+    return new LegacyDatabaseId(id);
   }
 
   getValue(): string {
     return this.value;
   }
 
-  equals(other: DatabaseId): boolean {
+  equals(other: LegacyDatabaseId): boolean {
     return this.value === other.value;
   }
 }

@@ -1,49 +1,44 @@
 import { User } from '../page/user';
 import { Parent } from '../page/parent';
 import { Icon } from '../page/icon';
-import { Cover } from '../page/cover';
 import { RichText } from './rich-text';
+import { PropertySchemaObject } from './property-schema';
 
 /**
- * Database ID - Value Object
+ * DataSource ID - Value Object
  */
-export class DatabaseId {
+export class DataSourceId {
   private constructor(private readonly value: string) {
     if (!value || value.trim().length === 0) {
-      throw new Error('Database ID cannot be empty');
+      throw new Error('DataSource ID cannot be empty');
     }
   }
 
-  static create(value: string): DatabaseId {
-    return new DatabaseId(value);
+  static create(value: string): DataSourceId {
+    return new DataSourceId(value);
   }
 
   getValue(): string {
     return this.value;
   }
 
-  equals(other: DatabaseId): boolean {
+  equals(other: DataSourceId): boolean {
     return this.value === other.value;
   }
 }
 
 /**
- * DataSource reference - Simple object with id and name
+ * DataSource Entity - Notion API 2025-09-03
+ * A data source is the actual table/collection within a database
+ * It contains the property schema (column definitions) and references to pages
  */
-export interface DataSourceReference {
-  id: string;
-  name: string;
-}
-
-/**
- * Database Entity - Notion API 2025-09-03
- * A database is a permission container that holds data sources
- */
-export class Database {
+export class DataSource {
   private constructor(
-    private readonly object: 'database',
-    private readonly id: DatabaseId,
-    private dataSources: DataSourceReference[],
+    private readonly object: 'data_source',
+    private readonly id: DataSourceId,
+    private readonly properties: Map<string, PropertySchemaObject>, // propertyName -> PropertySchema
+    private readonly parent: Parent, // Parent database
+    private readonly databaseParent: Parent, // Grandparent (database's parent)
     private readonly createdTime: Date,
     private readonly createdBy: User,
     private lastEditedTime: Date,
@@ -51,32 +46,27 @@ export class Database {
     private title: RichText[],
     private description: RichText[],
     private icon: Icon | null,
-    private cover: Cover | null,
-    private readonly parent: Parent,
-    private url: string,
     private archived: boolean,
     private inTrash: boolean,
-    private isInline: boolean,
-    private publicUrl: string | null,
   ) { }
 
   /**
-   * Create a new Database
+   * Create a new DataSource
    */
   static create(
-    id: DatabaseId,
-    parentId: string,
-    parentType: 'workspace' | 'page_id',
+    id: DataSourceId,
+    parentDatabaseId: string,
+    databaseParent: Parent,
     title: string,
     createdBy: User,
-  ): Database {
+  ): DataSource {
     const now = new Date();
-    const parent = parentType === 'workspace' ? Parent.workspace() : Parent.page(parentId);
-
-    return new Database(
-      'database',
+    return new DataSource(
+      'data_source',
       id,
-      [],
+      new Map(),
+      Parent.database(parentDatabaseId),
+      databaseParent,
       now,
       createdBy,
       now,
@@ -84,13 +74,8 @@ export class Database {
       RichText.fromPlainText(title),
       [],
       null,
-      null,
-      parent,
-      '', // URL will be set when saved
       false,
       false,
-      false,
-      null,
     );
   }
 
@@ -98,8 +83,10 @@ export class Database {
    * Reconstitute from persistence
    */
   static reconstitute(
-    id: DatabaseId,
-    dataSources: DataSourceReference[],
+    id: DataSourceId,
+    properties: Map<string, PropertySchemaObject>,
+    parent: Parent,
+    databaseParent: Parent,
     createdTime: Date,
     createdBy: User,
     lastEditedTime: Date,
@@ -107,18 +94,15 @@ export class Database {
     title: RichText[],
     description: RichText[],
     icon: Icon | null,
-    cover: Cover | null,
-    parent: Parent,
-    url: string,
     archived: boolean,
     inTrash: boolean,
-    isInline: boolean,
-    publicUrl: string | null,
-  ): Database {
-    return new Database(
-      'database',
+  ): DataSource {
+    return new DataSource(
+      'data_source',
       id,
-      dataSources,
+      properties,
+      parent,
+      databaseParent,
       createdTime,
       createdBy,
       lastEditedTime,
@@ -126,13 +110,8 @@ export class Database {
       title,
       description,
       icon,
-      cover,
-      parent,
-      url,
       archived,
       inTrash,
-      isInline,
-      publicUrl,
     );
   }
 
@@ -141,12 +120,20 @@ export class Database {
     return this.object;
   }
 
-  getId(): DatabaseId {
+  getId(): DataSourceId {
     return this.id;
   }
 
-  getDataSources(): DataSourceReference[] {
-    return [...this.dataSources];
+  getProperties(): Map<string, PropertySchemaObject> {
+    return new Map(this.properties);
+  }
+
+  getParent(): Parent {
+    return this.parent;
+  }
+
+  getDatabaseParent(): Parent {
+    return this.databaseParent;
   }
 
   getCreatedTime(): Date {
@@ -185,32 +172,12 @@ export class Database {
     return this.icon;
   }
 
-  getCover(): Cover | null {
-    return this.cover;
-  }
-
-  getParent(): Parent {
-    return this.parent;
-  }
-
-  getUrl(): string {
-    return this.url;
-  }
-
   isArchived(): boolean {
     return this.archived;
   }
 
   isInTrash(): boolean {
     return this.inTrash;
-  }
-
-  getIsInline(): boolean {
-    return this.isInline;
-  }
-
-  getPublicUrl(): string | null {
-    return this.publicUrl;
   }
 
   // Business methods
@@ -229,34 +196,40 @@ export class Database {
     this.touch(lastEditedBy);
   }
 
-  updateCover(cover: Cover | null, lastEditedBy: User): void {
-    this.cover = cover;
-    this.touch(lastEditedBy);
-  }
-
-  setUrl(url: string): void {
-    this.url = url;
-  }
-
-  setPublicUrl(publicUrl: string | null): void {
-    this.publicUrl = publicUrl;
-  }
-
-  addDataSource(dataSource: DataSourceReference, lastEditedBy: User): void {
-    const exists = this.dataSources.some((ds) => ds.id === dataSource.id);
-    if (exists) {
-      throw new Error(`DataSource ${dataSource.id} already exists`);
+  addProperty(propertyName: string, propertySchema: PropertySchemaObject, lastEditedBy: User): void {
+    if (this.properties.has(propertyName)) {
+      throw new Error(`Property ${propertyName} already exists`);
     }
-    this.dataSources.push(dataSource);
+    this.properties.set(propertyName, propertySchema);
     this.touch(lastEditedBy);
   }
 
-  removeDataSource(dataSourceId: string, lastEditedBy: User): void {
-    const initialLength = this.dataSources.length;
-    this.dataSources = this.dataSources.filter((ds) => ds.id !== dataSourceId);
-    if (this.dataSources.length < initialLength) {
+  removeProperty(propertyName: string, lastEditedBy: User): void {
+    const removed = this.properties.delete(propertyName);
+    if (removed) {
       this.touch(lastEditedBy);
     }
+  }
+
+  renameProperty(oldName: string, newName: string, lastEditedBy: User): void {
+    const schema = this.properties.get(oldName);
+    if (!schema) {
+      throw new Error(`Property ${oldName} does not exist`);
+    }
+    if (this.properties.has(newName)) {
+      throw new Error(`Property ${newName} already exists`);
+    }
+    this.properties.delete(oldName);
+    this.properties.set(newName, schema);
+    this.touch(lastEditedBy);
+  }
+
+  updatePropertySchema(propertyName: string, propertySchema: PropertySchemaObject, lastEditedBy: User): void {
+    if (!this.properties.has(propertyName)) {
+      throw new Error(`Property ${propertyName} does not exist`);
+    }
+    this.properties.set(propertyName, propertySchema);
+    this.touch(lastEditedBy);
   }
 
   archive(lastEditedBy: User): void {
@@ -279,10 +252,6 @@ export class Database {
     this.touch(lastEditedBy);
   }
 
-  setInline(isInline: boolean): void {
-    this.isInline = isInline;
-  }
-
   private touch(lastEditedBy: User): void {
     this.lastEditedTime = new Date();
     this.lastEditedBy = lastEditedBy;
@@ -292,10 +261,17 @@ export class Database {
    * Serialize to Notion API format
    */
   toJSON() {
+    const propertiesObj: Record<string, any> = {};
+    this.properties.forEach((schema, name) => {
+      propertiesObj[name] = schema.toJSON();
+    });
+
     return {
       object: this.object,
       id: this.id.getValue(),
-      data_sources: this.dataSources,
+      properties: propertiesObj,
+      parent: this.parent.toJSON(),
+      database_parent: this.databaseParent.toJSON(),
       created_time: this.createdTime.toISOString(),
       created_by: this.createdBy.toJSON(),
       last_edited_time: this.lastEditedTime.toISOString(),
@@ -303,13 +279,8 @@ export class Database {
       title: this.title.map((rt) => rt.toJSON()),
       description: this.description.map((rt) => rt.toJSON()),
       icon: this.icon ? this.icon.toJSON() : null,
-      cover: this.cover ? this.cover.toJSON() : null,
-      parent: this.parent.toJSON(),
-      url: this.url,
       archived: this.archived,
       in_trash: this.inTrash,
-      is_inline: this.isInline,
-      public_url: this.publicUrl,
     };
   }
 }
