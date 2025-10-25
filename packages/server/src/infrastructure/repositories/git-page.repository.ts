@@ -16,6 +16,7 @@ import {
  */
 export class GitPageRepository implements PageRepository {
   private readonly pagesDir: string;
+  private gitInitialized: boolean = false;
 
   constructor(private readonly gitDir: string) {
     this.pagesDir = path.join(gitDir, 'pages');
@@ -25,15 +26,23 @@ export class GitPageRepository implements PageRepository {
   private ensureDirectories(): void {
     if (!fs.existsSync(this.gitDir)) {
       fs.mkdirSync(this.gitDir, { recursive: true });
-      this.initGitRepo();
     }
     if (!fs.existsSync(this.pagesDir)) {
       fs.mkdirSync(this.pagesDir, { recursive: true });
     }
   }
 
-  private async initGitRepo(): Promise<void> {
-    await git.init({ fs, dir: this.gitDir, defaultBranch: 'main' });
+  private async ensureGitInitialized(): Promise<void> {
+    if (this.gitInitialized) {
+      return;
+    }
+
+    const gitDirPath = path.join(this.gitDir, '.git');
+    if (!fs.existsSync(gitDirPath)) {
+      await git.init({ fs, dir: this.gitDir, defaultBranch: 'main' });
+    }
+
+    this.gitInitialized = true;
   }
 
   private reconstructProperties(propertiesData: Record<string, any>): Map<string, Property> {
@@ -56,6 +65,8 @@ export class GitPageRepository implements PageRepository {
   }
 
   async save(page: Page): Promise<void> {
+    await this.ensureGitInitialized();
+
     const pageData = page.toJSON();
     const filePath = this.getPageFilePath(page.getId());
 
@@ -149,6 +160,8 @@ export class GitPageRepository implements PageRepository {
   }
 
   async delete(id: PageId): Promise<void> {
+    await this.ensureGitInitialized();
+
     const filePath = this.getPageFilePath(id);
 
     if (fs.existsSync(filePath)) {

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { pageApi, PageDTO } from '../api/page.api';
+import { syncApi } from '../api/sync.api';
 import './Sidebar.css';
 
 export function Sidebar() {
   const [rootItems, setRootItems] = useState<PageDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNewMenu, setShowNewMenu] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -51,10 +53,32 @@ export function Sidebar() {
     setShowNewMenu(false);
   };
 
+  const handleSync = async () => {
+    try {
+      setIsSyncing(true);
+      await syncApi.sync();
+      // Recharger les données après synchronisation
+      await loadData();
+    } catch (error) {
+      console.error('Failed to sync:', error);
+      alert('Erreur lors de la synchronisation: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
         <h2 className="sidebar-title">Colla</h2>
+        <button
+          className="sidebar-sync-btn"
+          onClick={handleSync}
+          disabled={isSyncing}
+          title="Synchroniser avec GitHub"
+        >
+          {isSyncing ? '⏳' : '🔄'}
+        </button>
       </div>
 
       <div className="sidebar-content">

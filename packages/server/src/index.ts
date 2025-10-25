@@ -1,15 +1,21 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { GitPageRepository } from './infrastructure/repositories/git-page.repository';
 import { PageService } from './application/page.service';
 import { PageController } from './presentation/controllers/page.controller';
+import { SetupService } from './application/setup.service';
+import { SetupController } from './presentation/controllers/setup.controller';
+import { GitSyncService } from './application/git-sync.service';
+import { SyncController } from './presentation/controllers/sync.controller';
 
 // Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-const GIT_STORAGE_PATH = process.env.GIT_STORAGE_PATH || './.colla-data/git-repo';
+// Utiliser un chemin absolu pour éviter les problèmes de chemin relatif
+const GIT_STORAGE_PATH = process.env.GIT_STORAGE_PATH || path.join(process.cwd(), '.colla-data', 'git-repo');
 
 /**
  * Dependency Injection / Composition Root
@@ -27,11 +33,28 @@ function createApp(): Application {
 
   // Application layer
   const pageService = new PageService(pageRepository);
+  const setupService = new SetupService();
+  const gitSyncService = new GitSyncService(
+    GIT_STORAGE_PATH,
+    () => setupService.getConfig()
+  );
 
   // Presentation layer
   const pageController = new PageController(pageService);
+  const setupController = new SetupController(setupService);
+  const syncController = new SyncController(gitSyncService);
 
   // Routes
+  app.get('/api/setup/status', (req, res) => setupController.checkSetup(req, res));
+  app.post('/api/setup/github', (req, res) => setupController.setupGitHub(req, res));
+  app.get('/api/setup/config', (req, res) => setupController.getConfig(req, res));
+
+  // Git sync routes
+  app.post('/api/sync/push', (req, res) => syncController.push(req, res));
+  app.post('/api/sync/pull', (req, res) => syncController.pull(req, res));
+  app.post('/api/sync/sync', (req, res) => syncController.sync(req, res));
+  app.get('/api/sync/status', (req, res) => syncController.getStatus(req, res));
+
   app.use('/api', pageController.router);
 
   // Health check

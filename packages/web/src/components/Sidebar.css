@@ -14,6 +14,9 @@
 .sidebar-header {
   padding: 16px 20px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar-title {
@@ -21,6 +24,25 @@
   font-weight: 600;
   margin: 0;
   color: #37352f;
+}
+
+.sidebar-sync-btn {
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.sidebar-sync-btn:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.sidebar-sync-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .sidebar-content {
