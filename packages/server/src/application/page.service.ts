@@ -1,4 +1,4 @@
-import { Page, PageId, PageTitle, PageContent, PageRepository } from '@colla/shared';
+import { Page, PageId, PageTitle, PageContent, PageRepository, Property } from '@colla/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -63,7 +63,7 @@ export class PageService {
     return await this.pageRepository.findByParentId(dbId);
   }
 
-  async updatePage(id: string, title?: string, content?: string): Promise<Page> {
+  async updatePage(id: string, title?: string, content?: string, properties?: Record<string, any>): Promise<Page> {
     const pageId = PageId.create(id);
     const page = await this.pageRepository.findById(pageId);
 
@@ -77,6 +77,16 @@ export class PageService {
 
     if (content !== undefined) {
       page.updateContent(PageContent.create(content));
+    }
+
+    if (properties !== undefined) {
+      // Mettre à jour les propriétés
+      console.log('🔧 Processing properties:', properties);
+      for (const [propId, propData] of Object.entries(properties)) {
+        console.log('  Setting property:', propId, propData);
+        const property = Property.reconstitute(propData);
+        page.setProperty(propId, property);
+      }
     }
 
     await this.pageRepository.save(page);

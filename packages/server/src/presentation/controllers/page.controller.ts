@@ -90,9 +90,16 @@ export class PageController {
   private async updatePage(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { title, content } = req.body;
+      const { title, content, properties } = req.body;
 
-      const page = await this.pageService.updatePage(id, title, content);
+      console.log('📝 Updating page:', {
+        id,
+        title,
+        content,
+        properties
+      });
+
+      const page = await this.pageService.updatePage(id, title, content, properties);
       res.status(200).json(page.toJSON());
     } catch (error) {
       if ((error as Error).message.includes('not found')) {

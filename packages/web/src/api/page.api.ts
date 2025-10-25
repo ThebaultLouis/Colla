@@ -57,11 +57,11 @@ export const pageApi = {
     return this.createPage(name, description, true);
   },
 
-  async updatePage(id: string, title?: string, content?: string): Promise<PageDTO> {
+  async updatePage(id: string, title?: string, content?: string, properties?: Record<string, PropertyDTO>): Promise<PageDTO> {
     const response = await fetch(`${API_BASE_URL}/pages/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, properties }),
     });
     if (!response.ok) throw new Error('Failed to update page');
     return response.json();

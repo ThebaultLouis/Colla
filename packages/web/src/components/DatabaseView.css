@@ -145,7 +145,6 @@
 
 .database-row {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
@@ -159,8 +158,30 @@
   color: #37352f;
 }
 
-.title-cell {
+.name-cell {
   font-weight: 500;
+  cursor: pointer;
+}
+
+.name-cell:hover .page-name {
+  color: #2383e2;
+}
+
+.editable-cell {
+  cursor: text;
+  color: rgba(55, 53, 47, 0.65);
+}
+
+.editable-cell:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.page-name {
+  transition: color 0.15s ease;
 }
 
 .date-cell {
@@ -173,4 +194,152 @@
   padding: 96px 32px;
   color: rgba(55, 53, 47, 0.45);
   font-size: 14px;
+}
+/* Add property button in header */
+.add-property-header {
+  width: 60px;
+  padding: 8px 12px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.add-property-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(55, 53, 47, 0.45);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-property-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(55, 53, 47, 0.8);
+}
+
+/* Inline editing inputs */
+.editable-cell input[type="text"],
+.editable-cell input[type="number"] {
+  width: 100%;
+  border: 1px solid #2383e2;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: #37352f;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.editable-cell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2383e2;
+}
+
+/* Modal */
+.add-property-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 32px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.modal-content h3 {
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #37352f;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 53, 47, 0.8);
+}
+
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  font-size: 14px;
+  color: #37352f;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+  border-color: #2383e2;
+  box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.form-group input[type="text"]::placeholder {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-actions button[type="button"] {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(55, 53, 47, 0.8);
+}
+
+.modal-actions button[type="button"]:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.modal-actions button.primary {
+  background: #2383e2;
+  color: #fff;
+}
+
+.modal-actions button.primary:hover {
+  background: #1a6dbf;
 }
