@@ -10,6 +10,7 @@ import {
   SelectPropertyDTO,
   DatePropertyDTO
 } from '../api/page.api';
+import { PageModal } from './PageModal';
 import './DatabaseView.css';
 
 interface PropertyDefinition {
@@ -66,6 +67,8 @@ export function DatabaseView() {
   const [properties, setProperties] = useState<PropertyDefinition[]>([]);
   const [editingCell, setEditingCell] = useState<{ pageId: string; propertyName: string } | null>(null);
   const [showAddProperty, setShowAddProperty] = useState(false);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+  const [isPageModalOpen, setIsPageModalOpen] = useState(false);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -159,7 +162,13 @@ export function DatabaseView() {
   };
 
   const handleNameClick = (pageId: string) => {
-    navigate(`/page/${pageId}`);
+    setSelectedPageId(pageId);
+    setIsPageModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPageId(null);
+    setIsPageModalOpen(false);
   };
 
   const handleAddProperty = async (propertyName: string, propertyType: PropertyDefinition['type']) => {
@@ -559,6 +568,15 @@ export function DatabaseView() {
           </div>
         )}
       </div>
+
+      {selectedPageId && (
+        <PageModal 
+          pageId={selectedPageId}
+          isOpen={isPageModalOpen}
+          onClose={handleCloseModal}
+          onUpdate={() => id && loadDatabase(id)}
+        />
+      )}
     </div>
   );
 }

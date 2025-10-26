@@ -21,11 +21,14 @@ export class PageService {
       if (!parent) {
         throw new Error(`Parent page with id ${parentId} not found`);
       }
-      if (!parent.isADatabase()) {
-        throw new Error(`Parent must be a database`);
+      
+      // Si le parent est une database, utiliser Parent.dataSource
+      // Sinon, utiliser Parent.page
+      if (parent.isADatabase()) {
+        page.setParent(Parent.dataSource(parentId));
+      } else {
+        page.setParent(Parent.page(parentId));
       }
-      // Utiliser setParent avec un objet Parent
-      page.setParent(Parent.dataSource(parentId));
     }
 
     await this.pageRepository.save(page);
@@ -64,6 +67,18 @@ export class PageService {
     return await this.pageRepository.findByParentId(dbId);
   }
 
+  async listPageChildren(pageId: string): Promise<Page[]> {
+    const id = PageId.create(pageId);
+    const page = await this.pageRepository.findById(id);
+
+    if (!page) {
+      throw new Error(`Page with id ${pageId} not found`);
+    }
+
+    // Retourner toutes les pages qui ont ce pageId comme parent
+    return await this.pageRepository.findByParentId(id);
+  }
+
   async updatePage(id: string, title?: string, content?: string, properties?: Record<string, any>): Promise<Page> {
     const pageId = PageId.create(id);
     const page = await this.pageRepository.findById(pageId);
@@ -72,7 +87,17 @@ export class PageService {
       throw new Error(`Page with id ${id} not found`);
     }
 
+    console.log('📝 PageService.updatePage called with:', {
+      id,
+      title,
+      titleType: typeof title,
+      titleUndefined: title === undefined,
+      content: content?.substring(0, 50),
+      properties: Object.keys(properties || {})
+    });
+
     if (title !== undefined) {
+      console.log('✏️ Updating title to:', title);
       page.updateTitle(PageTitle.create(title));
     }
 
@@ -91,17 +116,25 @@ export class PageService {
     }
 
     await this.pageRepository.save(page);
+    console.log('✅ Page saved with title:', page.getTitle().getValue());
     return page;
   }
 
   async deletePage(id: string): Promise<void> {
     const pageId = PageId.create(id);
-    const exists = await this.pageRepository.exists(pageId);
+    const page = await this.pageRepository.findById(pageId);
 
-    if (!exists) {
+    if (!page) {
       throw new Error(`Page with id ${id} not found`);
     }
 
+    // Supprimer récursivement tous les enfants
+    const children = await this.pageRepository.findByParentId(pageId);
+    for (const child of children) {
+      await this.deletePage(child.getId().getValue());
+    }
+
+    // Supprimer la page elle-même
     await this.pageRepository.delete(pageId);
   }
 }

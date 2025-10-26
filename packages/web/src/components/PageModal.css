@@ -1,0 +1,377 @@
+/* Backdrop */
+.page-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Container - Sidebar style Notion */
+.page-modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 720px;
+  max-width: 90vw;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Header */
+.page-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px 96px 8px 96px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.page-modal-header-content {
+  flex: 1;
+}
+
+.page-modal-title {
+  width: 100%;
+  font-size: 40px;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  padding: 3px 2px;
+  color: #37352f;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.page-modal-title::placeholder {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+.page-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: rgba(55, 53, 47, 0.5);
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.page-modal-close:hover {
+  background: rgba(55, 53, 47, 0.08);
+}
+
+/* Content */
+.page-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 96px 96px 96px;
+}
+
+.page-modal-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+  color: rgba(55, 53, 47, 0.45);
+}
+
+/* Properties Section */
+.page-modal-properties {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.page-modal-property-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 0;
+  min-height: 36px;
+}
+
+.page-modal-property-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 53, 47, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-modal-property-value {
+  display: flex;
+  align-items: center;
+}
+
+.property-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  outline: none;
+  background: transparent;
+  color: #37352f;
+  transition: border-color 0.15s ease;
+}
+
+.property-input:hover {
+  border-color: rgba(55, 53, 47, 0.3);
+}
+
+.property-input:focus {
+  border-color: #2383e2;
+  box-shadow: 0 0 0 1px #2383e2;
+}
+
+.property-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2383e2;
+}
+
+/* Editor */
+.page-modal-editor {
+  margin-top: 16px;
+}
+
+.page-modal-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: 3px 2px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  resize: vertical;
+  color: #37352f;
+  background: transparent;
+}
+
+.page-modal-textarea::placeholder {
+  color: rgba(55, 53, 47, 0.3);
+}
+
+/* Footer */
+.page-modal-footer {
+  padding: 16px 96px;
+  border-top: 1px solid rgba(55, 53, 47, 0.09);
+  background: rgba(251, 251, 250, 0.8);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.page-modal-save-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #2383e2;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.page-modal-save-btn:hover {
+  background: #1a6dbe;
+}
+
+.page-modal-save-btn:disabled {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(55, 53, 47, 0.3);
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-modal {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .page-modal-header,
+  .page-modal-content,
+  .page-modal-footer {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .page-modal-property-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* Section des pages enfants dans la modal */
+.page-modal-children {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.page-modal-children .children-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.page-modal-children .children-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.page-modal-children .add-child-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: rgba(55, 53, 47, 0.65);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.page-modal-children .add-child-btn:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.page-modal-children .add-child-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background-color: rgba(242, 241, 238, 0.6);
+  border-radius: 3px;
+}
+
+.page-modal-children .add-child-form input {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  font-size: 13px;
+  outline: none;
+}
+
+.page-modal-children .add-child-form input:focus {
+  border-color: #2383e2;
+}
+
+.page-modal-children .add-child-form select {
+  padding: 5px 8px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.page-modal-children .add-child-form button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  font-size: 13px;
+  cursor: pointer;
+  background-color: #2383e2;
+  color: white;
+  transition: background-color 0.15s ease;
+}
+
+.page-modal-children .add-child-form button:hover {
+  background-color: #1a6ec7;
+}
+
+.page-modal-children .add-child-form button:last-child {
+  background-color: transparent;
+  color: rgba(55, 53, 47, 0.65);
+}
+
+.page-modal-children .add-child-form button:last-child:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.page-modal-children .children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.page-modal-children .no-children {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 13px;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+.page-modal-children .child-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.page-modal-children .child-item:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.page-modal-children .child-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.page-modal-children .child-title {
+  font-size: 13px;
+  color: #37352f;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

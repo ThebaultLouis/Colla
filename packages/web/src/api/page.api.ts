@@ -18,6 +18,8 @@ export interface PageDTO {
   // Legacy fields
   title: string;
   content: string;
+  // Metadata
+  hasChildren?: boolean;
 }
 
 // Notion property value types
@@ -143,6 +145,12 @@ export const pageApi = {
   async listDatabasePages(databaseId: string): Promise<PageDTO[]> {
     const response = await fetch(`${API_BASE_URL}/pages/${databaseId}/children`);
     if (!response.ok) throw new Error('Failed to fetch database pages');
+    return response.json() as Promise<PageDTO[]>;
+  },
+
+  async listPageChildren(pageId: string): Promise<PageDTO[]> {
+    const response = await fetch(`${API_BASE_URL}/pages/${pageId}/children`);
+    if (!response.ok) throw new Error('Failed to fetch page children');
     return response.json() as Promise<PageDTO[]>;
   },
 

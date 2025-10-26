@@ -18,7 +18,7 @@ export class PageController {
     this.router.get('/pages', this.listPages.bind(this));
     this.router.get('/pages/root', this.listRootPages.bind(this)); // Nouvelles routes
     this.router.get('/pages/:id', this.getPage.bind(this));
-    this.router.get('/pages/:id/children', this.listDatabasePages.bind(this));
+    this.router.get('/pages/:id/children', this.listPageChildren.bind(this)); // Modifié pour supporter pages + databases
     this.router.put('/pages/:id', this.updatePage.bind(this));
     this.router.delete('/pages/:id', this.deletePage.bind(this));
   }
@@ -54,7 +54,20 @@ export class PageController {
   private async listRootPages(_req: Request, res: Response): Promise<void> {
     try {
       const pages = await this.pageService.listRootPages();
-      res.status(200).json(pages.map((p) => p.toJSON()));
+      
+      // Enrichir avec hasChildren
+      const enrichedPages = await Promise.all(
+        pages.map(async (page) => {
+          const json: any = page.toJSON();
+          if (page.getObject() === 'page') {
+            const children = await this.pageService.listPageChildren(page.getId().getValue());
+            json.hasChildren = children.length > 0;
+          }
+          return json;
+        })
+      );
+      
+      res.status(200).json(enrichedPages);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -65,6 +78,33 @@ export class PageController {
       const { id } = req.params;
       const pages = await this.pageService.listDatabasePages(id);
       res.status(200).json(pages.map((p) => p.toJSON()));
+    } catch (error) {
+      if ((error as Error).message.includes('not found')) {
+        res.status(404).json({ error: (error as Error).message });
+      } else {
+        res.status(500).json({ error: (error as Error).message });
+      }
+    }
+  }
+
+  private async listPageChildren(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const children = await this.pageService.listPageChildren(id);
+      
+      // Enrichir avec hasChildren
+      const enrichedChildren = await Promise.all(
+        children.map(async (page) => {
+          const json: any = page.toJSON();
+          if (page.getObject() === 'page') {
+            const grandChildren = await this.pageService.listPageChildren(page.getId().getValue());
+            json.hasChildren = grandChildren.length > 0;
+          }
+          return json;
+        })
+      );
+      
+      res.status(200).json(enrichedChildren);
     } catch (error) {
       if ((error as Error).message.includes('not found')) {
         res.status(404).json({ error: (error as Error).message });

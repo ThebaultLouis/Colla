@@ -1,26 +1,36 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { pageApi, PageDTO, PropertyValueDTO } from '../api/page.api';
-import { useRefresh } from '../contexts/RefreshContext';
-import './PageEditor.css';
+import './PageModal.css';
 
-export function PageEditor() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { triggerRefresh } = useRefresh();
+interface PageModalProps {
+  pageId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onUpdate?: () => void;
+}
+
+export function PageModal({ pageId, isOpen, onClose, onUpdate }: PageModalProps) {
   const [page, setPage] = useState<PageDTO | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [properties, setProperties] = useState<Record<string, PropertyValueDTO>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [children, setChildren] = useState<PageDTO[]>([]);
-  const [showAddChild, setShowAddChild] = useState(false);
-  const [newChildTitle, setNewChildTitle] = useState('');
-  const [newChildType, setNewChildType] = useState<'page' | 'database'>('page');
 
-  const loadPage = useCallback(async (pageId: string) => {
+  const handleClose = () => {
+    if (onUpdate) onUpdate(); // Recharger la base de données à la fermeture
+    onClose();
+  };
+
+  useEffect(() => {
+    if (isOpen && pageId) {
+      loadPage();
+    }
+  }, [isOpen, pageId]);
+
+  const loadPage = async () => {
     try {
+      setLoading(true);
       const data = await pageApi.getPage(pageId);
       setPage(data);
       setTitle(data.title);
@@ -28,69 +38,18 @@ export function PageEditor() {
       setProperties(data.properties || {});
     } catch (error) {
       console.error('Failed to load page:', error);
-      alert('Failed to load page');
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  const loadChildren = useCallback(async (pageId: string) => {
-    try {
-      const childPages = await pageApi.listPageChildren(pageId);
-      setChildren(childPages);
-    } catch (error) {
-      console.error('Failed to load children:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (id && id !== 'new') {
-      loadPage(id);
-      loadChildren(id);
-    } else {
-      setLoading(false);
-    }
-  }, [id, loadPage, loadChildren]);
-
-  const handleAddChild = async () => {
-    if (!id || !newChildTitle.trim()) return;
-    
-    try {
-      await pageApi.createPage(newChildTitle, '', newChildType, id);
-      setNewChildTitle('');
-      setShowAddChild(false);
-      await loadChildren(id); // Recharger les enfants
-    } catch (error) {
-      console.error('Failed to create child page:', error);
-      alert('Failed to create child page');
     }
   };
 
   const handleSave = async () => {
-    // Ne pas sauvegarder si c'est une nouvelle page sans titre
-    if (!id && !title.trim()) return;
-    
-    console.log('💾 Saving page:', { id, title, content: content.substring(0, 50) });
-    
     setSaving(true);
     try {
-      if (id && id !== 'new') {
-        // Mise à jour d'une page existante
-        // Ne pas envoyer les properties ici car elles sont gérées séparément avec handleUpdateProperty
-        await pageApi.updatePage(id, title, content);
-        console.log('✅ Page saved successfully');
-        // Déclencher le refresh de la sidebar
-        triggerRefresh();
-      } else {
-        // Création d'une nouvelle page
-        const newPage = await pageApi.createPage(title || 'Sans titre', content);
-        navigate(`/page/${newPage.id}`, { replace: true });
-        console.log('✅ New page created:', newPage.id);
-        // Déclencher le refresh de la sidebar
-        triggerRefresh();
-      }
+      await pageApi.updatePage(pageId, title, content, properties);
+      // Ne pas appeler onUpdate ici pour éviter le clignotement
     } catch (error) {
-      console.error('❌ Failed to save page:', error);
+      console.error('Failed to save page:', error);
       alert('Failed to save page');
     } finally {
       setSaving(false);
@@ -100,11 +59,9 @@ export function PageEditor() {
   const handleUpdateProperty = async (propertyName: string, value: any) => {
     if (!page) return;
 
-    // Trouver la propriété existante
     const existingProperty = properties[propertyName];
     if (!existingProperty) return;
 
-    // Créer la nouvelle valeur de propriété au format Notion
     let newPropertyValue: PropertyValueDTO;
 
     switch (existingProperty.type) {
@@ -207,9 +164,10 @@ export function PageEditor() {
     const updatedProperties = { ...properties, [propertyName]: newPropertyValue };
     setProperties(updatedProperties);
 
-    // Sauvegarder immédiatement
     try {
-      await pageApi.updatePage(id!, title, content, updatedProperties);
+      await pageApi.updatePage(pageId, title, content, updatedProperties);
+      // Ne pas appeler onUpdate ici pour éviter le clignotement
+      // La base de données sera rechargée à la fermeture du modal
     } catch (error) {
       console.error('Failed to update property:', error);
     }
@@ -325,103 +283,73 @@ export function PageEditor() {
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (!isOpen) return null;
 
-  // Ne garder que les propriétés non-title (title est géré par le champ principal)
   const propertyEntries = Object.entries(properties).filter(([name]) => name !== 'title');
 
-  // Les propriétés ne sont éditables que pour les pages appartenant à une database
-  // Le schema des propriétés est défini par la database parente
-  const isPageInDatabase = page && page.parent && page.parent.type === 'database_id';
-  
-  // Les pages enfants ne sont disponibles que pour les pages normales (pas les databases, pas les pages de database)
-  const canHaveChildren = page && page.object === 'page' && !isPageInDatabase;
-
   return (
-    <div className="page-editor">
-      <div className="editor-header">
-        <input
-          type="text"
-          className="title-input"
-          placeholder="Untitled"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={handleSave}
-        />
-        {saving && (
-          <div className="actions">
-            <span className="saving-indicator">Saving...</span>
-          </div>
-        )}
-      </div>
+    <>
+      {/* Backdrop */}
+      <div className="page-modal-backdrop" onClick={handleClose} />
 
-      {/* Section des propriétés - Uniquement pour les pages appartenant à une database */}
-      {isPageInDatabase && propertyEntries.length > 0 && (
-        <div className="properties-section">
-          <h3 className="properties-title">Propriétés</h3>
-          <div className="properties-list">
-            {propertyEntries.map(([name, property]) => (
-              <div key={name} className="property-row">
-                <label className="property-label">{name}</label>
-                <div className="property-value">
-                  {renderPropertyValue(name, property)}
+      {/* Modal */}
+      <div className="page-modal">
+        <div className="page-modal-header">
+          <div className="page-modal-header-content">
+            <input
+              type="text"
+              className="page-modal-title"
+              placeholder="Untitled"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={handleSave}
+            />
+          </div>
+          <button className="page-modal-close" onClick={handleClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="page-modal-content">
+          {loading ? (
+            <div className="page-modal-loading">Loading...</div>
+          ) : (
+            <>
+              {/* Propriétés */}
+              {propertyEntries.length > 0 && (
+                <div className="page-modal-properties">
+                  {propertyEntries.map(([name, property]) => (
+                    <div key={name} className="page-modal-property-row">
+                      <label className="page-modal-property-label">{name}</label>
+                      <div className="page-modal-property-value">
+                        {renderPropertyValue(name, property)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+
+              {/* Contenu */}
+              <div className="page-modal-editor">
+                <textarea
+                  className="page-modal-textarea"
+                  placeholder="Start writing..."
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  onBlur={handleSave}
+                />
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <textarea
-        className="content-editor"
-        placeholder="Start writing..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onBlur={handleSave}
-      />
-
-      {/* Section des pages enfants - Uniquement pour les pages normales (pas databases, pas pages de database) */}
-      {canHaveChildren && id && id !== 'new' && (
-        <div className="children-section">
-          <div className="children-header">
-            <h3>Pages enfants</h3>
-            <button onClick={() => setShowAddChild(true)} className="add-child-btn">
-              + Ajouter une page
-            </button>
-          </div>
-
-          {showAddChild && (
-            <div className="add-child-form">
-              <input
-                type="text"
-                placeholder="Titre de la page"
-                value={newChildTitle}
-                onChange={(e) => setNewChildTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddChild()}
-              />
-              <select value={newChildType} onChange={(e) => setNewChildType(e.target.value as 'page' | 'database')}>
-                <option value="page">Page</option>
-                <option value="database">Base de données</option>
-              </select>
-              <button onClick={handleAddChild}>Créer</button>
-              <button onClick={() => { setShowAddChild(false); setNewChildTitle(''); }}>Annuler</button>
-            </div>
+            </>
           )}
-
-          <div className="children-list">
-            {children.length === 0 ? (
-              <p className="no-children">Aucune page enfant</p>
-            ) : (
-              children.map((child) => (
-                <div key={child.id} className="child-item" onClick={() => navigate(`/page/${child.id}`)}>
-                  <span className="child-icon">{child.object === 'database' ? '🗂️' : '📄'}</span>
-                  <span className="child-title">{child.title}</span>
-                </div>
-              ))
-            )}
-          </div>
         </div>
-      )}
-    </div>
+
+        {/* Footer */}
+        <div className="page-modal-footer">
+          <button onClick={handleSave} disabled={saving} className="page-modal-save-btn">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

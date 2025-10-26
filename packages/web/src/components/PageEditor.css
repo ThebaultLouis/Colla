@@ -38,12 +38,13 @@
 .actions {
   display: flex;
   gap: 8px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  align-items: center;
 }
 
-.editor-header:hover .actions {
-  opacity: 1;
+.saving-indicator {
+  font-size: 13px;
+  color: rgba(55, 53, 47, 0.5);
+  font-style: italic;
 }
 
 .actions button {
@@ -55,7 +56,12 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.15s ease;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.editor-header:hover .actions button {
+  opacity: 1;
 }
 
 .actions button:hover {
@@ -281,4 +287,136 @@
 
 .property-select:hover {
   background-color: rgba(55, 53, 47, 0.08);
+}
+/* Section des pages enfants */
+.children-section {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.children-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.children-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(55, 53, 47, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.add-child-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: rgba(55, 53, 47, 0.65);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.add-child-btn:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.add-child-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(242, 241, 238, 0.6);
+  border-radius: 3px;
+}
+
+.add-child-form input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  font-size: 14px;
+  outline: none;
+}
+
+.add-child-form input:focus {
+  border-color: #2383e2;
+}
+
+.add-child-form select {
+  padding: 6px 10px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-child-form button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #2383e2;
+  color: white;
+  transition: background-color 0.15s ease;
+}
+
+.add-child-form button:hover {
+  background-color: #1a6ec7;
+}
+
+.add-child-form button:last-child {
+  background-color: transparent;
+  color: rgba(55, 53, 47, 0.65);
+}
+
+.add-child-form button:last-child:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.no-children {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 14px;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.child-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.child-item:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}
+
+.child-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.child-title {
+  font-size: 14px;
+  color: #37352f;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
