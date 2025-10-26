@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GitSyncService } from '../application/git-sync.service';
+import { GitSyncService } from '../../application/git-sync-service';
 
 export class SyncController {
   constructor(private syncService: GitSyncService) { }

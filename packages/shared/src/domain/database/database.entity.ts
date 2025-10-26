@@ -58,6 +58,7 @@ export class Database {
     private inTrash: boolean,
     private isInline: boolean,
     private publicUrl: string | null,
+    private order: number = 0,
   ) { }
 
   /**
@@ -91,6 +92,7 @@ export class Database {
       false,
       false,
       null,
+      0, // order
     );
   }
 
@@ -114,6 +116,7 @@ export class Database {
     inTrash: boolean,
     isInline: boolean,
     publicUrl: string | null,
+    order: number = 0,
   ): Database {
     return new Database(
       'database',
@@ -133,6 +136,7 @@ export class Database {
       inTrash,
       isInline,
       publicUrl,
+      order,
     );
   }
 
@@ -213,6 +217,10 @@ export class Database {
     return this.publicUrl;
   }
 
+  getOrder(): number {
+    return this.order;
+  }
+
   // Business methods
   updateTitle(title: string, lastEditedBy: User): void {
     this.title = RichText.fromPlainText(title);
@@ -283,6 +291,11 @@ export class Database {
     this.isInline = isInline;
   }
 
+  setOrder(order: number): void {
+    this.order = order;
+    this.touch(this.lastEditedBy);
+  }
+
   private touch(lastEditedBy: User): void {
     this.lastEditedTime = new Date();
     this.lastEditedBy = lastEditedBy;
@@ -310,6 +323,7 @@ export class Database {
       in_trash: this.inTrash,
       is_inline: this.isInline,
       public_url: this.publicUrl,
+      order: this.order,
     };
   }
 }

@@ -164,6 +164,8 @@
   margin: 0 8px;
   transition: background-color 0.15s ease;
   cursor: pointer;
+  min-width: 0; /* Permet au flex item de se rétrécir */
+  overflow: hidden; /* Cache le débordement du texte */
 }
 
 .sidebar-item:hover {
@@ -280,10 +282,13 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: 4px;
 }
 
 .tree-item-wrapper .sidebar-item {
   flex: 1;
+  min-width: 0; /* Permet au flex item de se rétrécir en dessous de sa taille de contenu */
+  overflow: hidden;
 }
 
 .tree-item-actions {
@@ -291,6 +296,7 @@
   align-items: center;
   gap: 2px;
   padding-right: 8px;
+  flex-shrink: 0; /* Empêche les boutons de se rétrécir */
 }
 
 .tree-item-wrapper:hover .tree-item-actions {
@@ -321,6 +327,12 @@
 .tree-action-btn:hover {
   background-color: rgba(0, 0, 0, 0.06);
   color: #37352f;
+}
+
+.tree-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .tree-dropdown {

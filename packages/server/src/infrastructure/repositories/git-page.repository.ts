@@ -244,6 +244,7 @@ export class GitPageRepository implements PageRepository {
       // Legacy fields
       legacyProperties,
       PageContent.create(data.content || ''),
+      data.order || 0, // order field
     );
   }
 
@@ -324,6 +325,7 @@ export class GitPageRepository implements PageRepository {
             data.public_url || null, // public_url
             legacyProperties, // legacyProperties
             PageContent.create(data.content || ''), // content
+            data.order || 0, // order
           ),
         );
       }
@@ -334,15 +336,19 @@ export class GitPageRepository implements PageRepository {
 
   async findRootPages(): Promise<Page[]> {
     const allPages = await this.findAll();
-    return allPages.filter(page => page.isRootPage());
+    const rootPages = allPages.filter(page => page.isRootPage());
+    // Trier par ordre
+    return rootPages.sort((a, b) => a.getOrder() - b.getOrder());
   }
 
   async findByParentId(parentId: PageId): Promise<Page[]> {
     const allPages = await this.findAll();
-    return allPages.filter(page => {
+    const children = allPages.filter(page => {
       const pageParentId = page.getParentId();
       return pageParentId !== null && pageParentId.getValue() === parentId.getValue();
     });
+    // Trier par ordre
+    return children.sort((a, b) => a.getOrder() - b.getOrder());
   }
 
   async delete(id: PageId): Promise<void> {

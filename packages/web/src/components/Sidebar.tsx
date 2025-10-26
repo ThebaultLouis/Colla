@@ -12,9 +12,11 @@ interface TreeItemProps {
   isActive: (id: string, object: 'page' | 'database') => boolean;
   onDelete: () => void;
   refreshTrigger: number;
+  siblings: PageDTO[];
+  onReorder: (pageIds: string[]) => void;
 }
 
-function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemProps) {
+function TreeItem({ item, level, isActive, onDelete, refreshTrigger, siblings, onReorder }: TreeItemProps) {
   const navigate = useNavigate();
   const { toggleExpanded, isExpanded: isExpandedInContext } = useRefresh();
   const [children, setChildren] = useState<PageDTO[]>([]);
@@ -28,6 +30,15 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
   const [optionsMenuPosition, setOptionsMenuPosition] = useState({ top: 0, left: 0 });
 
   const isExpanded = isExpandedInContext(item.id);
+
+  const currentIndex = siblings.findIndex(s => s.id === item.id);
+  const canMoveUp = currentIndex > 0;
+  const canMoveDown = currentIndex >= 0 && currentIndex < siblings.length - 1;
+
+  // Debug: log si l'élément n'est pas trouvé dans siblings
+  if (currentIndex === -1 && siblings.length > 0) {
+    console.warn(`Item ${item.id} (${item.title}) not found in siblings:`, siblings.map(s => s.id));
+  }
 
   // Charger les enfants au montage si l'item est déjà ouvert
   useEffect(() => {
@@ -127,6 +138,26 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
     }
   };
 
+  const handleMoveUp = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!canMoveUp) return;
+
+    const newOrder = [...siblings];
+    [newOrder[currentIndex], newOrder[currentIndex - 1]] = [newOrder[currentIndex - 1], newOrder[currentIndex]];
+    onReorder(newOrder.map(p => p.id));
+  };
+
+  const handleMoveDown = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!canMoveDown) return;
+
+    const newOrder = [...siblings];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+    onReorder(newOrder.map(p => p.id));
+  };
+
   const path = item.object === 'database' ? `/database/${item.id}` : `/page/${item.id}`;
   const icon = item.icon?.emoji || item.icon?.external?.url || item.icon?.file?.url || (item.object === 'database' ? '📊' : '📄');
 
@@ -213,6 +244,24 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
               ⋮
             </button>
           </div>
+          
+          {/* Boutons de réordonnancement - toujours affichés mais désactivés si non applicables */}
+          <button
+            className="tree-action-btn"
+            onClick={handleMoveUp}
+            disabled={!canMoveUp}
+            title={canMoveUp ? "Déplacer vers le haut" : "Déjà en première position"}
+          >
+            ↑
+          </button>
+          <button
+            className="tree-action-btn"
+            onClick={handleMoveDown}
+            disabled={!canMoveDown}
+            title={canMoveDown ? "Déplacer vers le bas" : "Déjà en dernière position"}
+          >
+            ↓
+          </button>
         </div>
       </div>
 
@@ -260,6 +309,11 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
               isActive={isActive}
               onDelete={loadChildren}
               refreshTrigger={refreshTrigger}
+              siblings={children}
+              onReorder={async (pageIds) => {
+                await pageApi.reorderPages(pageIds);
+                await loadChildren(); // Recharger pour voir le nouvel ordre
+              }}
             />
           ))}
         </div>
@@ -386,6 +440,11 @@ export function Sidebar() {
                   isActive={isActive}
                   onDelete={loadData}
                   refreshTrigger={refreshTrigger}
+                  siblings={rootItems}
+                  onReorder={async (pageIds) => {
+                    await pageApi.reorderPages(pageIds);
+                    await loadData(); // Recharger pour voir le nouvel ordre
+                  }}
                 />
               ))
             )}

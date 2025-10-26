@@ -15,6 +15,7 @@ export interface PageDTO {
   properties: Record<string, PropertyValueDTO>;
   url: string | null;
   public_url: string | null;
+  order: number;
   // Legacy fields
   title: string;
   content: string;
@@ -193,5 +194,14 @@ export const pageApi = {
       method: 'DELETE',
     });
     if (!response.ok) throw new Error('Failed to delete page');
+  },
+
+  async reorderPages(pageIds: string[]): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/pages/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pageIds }),
+    });
+    if (!response.ok) throw new Error('Failed to reorder pages');
   },
 };

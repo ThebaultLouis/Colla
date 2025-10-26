@@ -1,7 +1,7 @@
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
-import fs from 'fs/promises';
-import path from 'path';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 export interface GitConfig {
   token: string;

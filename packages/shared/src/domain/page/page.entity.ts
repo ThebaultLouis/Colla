@@ -42,6 +42,7 @@ export class Page {
     // Legacy fields for backward compatibility
     private readonly legacyProperties: Map<string, Property>,
     private content: PageContent,
+    private order: number = 0, // Order for sorting siblings
   ) { }
 
   static create(id: PageId, title: PageTitle, content?: PageContent, objectType: 'page' | 'database' = 'page', createdBy?: User): Page {
@@ -69,6 +70,7 @@ export class Page {
       null, // public_url
       new Map<string, Property>(), // legacyProperties
       content || PageContent.empty(),
+      0, // order - default to 0
     );
   }
 
@@ -90,6 +92,7 @@ export class Page {
     // Legacy fields for backward compatibility
     legacyProperties: Map<string, Property>,
     content: PageContent,
+    order: number = 0,
   ): Page {
     return new Page(
       object,
@@ -108,6 +111,7 @@ export class Page {
       public_url,
       legacyProperties,
       content,
+      order,
     );
   }
 
@@ -229,7 +233,16 @@ export class Page {
     return this.last_edited_by;
   }
 
+  getOrder(): number {
+    return this.order;
+  }
+
   // Business methods
+  setOrder(order: number): void {
+    this.order = order;
+    this.touch();
+  }
+
   setParent(parent: Parent): void {
     this.parent = parent;
     this.touch();
@@ -347,6 +360,7 @@ export class Page {
       properties: propertiesObj,
       url: this.url,
       public_url: this.public_url,
+      order: this.order,
       // Legacy fields for backward compatibility
       title: this.getTitle().getValue(),
       content: this.content.getValue(),

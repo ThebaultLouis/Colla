@@ -120,6 +120,18 @@ export class PageService {
     return page;
   }
 
+  async reorderPages(pageIds: string[]): Promise<void> {
+    // Met à jour l'ordre de plusieurs pages en une seule opération
+    for (let i = 0; i < pageIds.length; i++) {
+      const pageId = PageId.create(pageIds[i]);
+      const page = await this.pageRepository.findById(pageId);
+      if (page) {
+        page.setOrder(i);
+        await this.pageRepository.save(page);
+      }
+    }
+  }
+
   async deletePage(id: string): Promise<void> {
     const pageId = PageId.create(id);
     const page = await this.pageRepository.findById(pageId);

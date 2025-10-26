@@ -3,11 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { GitPageRepository } from './infrastructure/repositories/git-page.repository';
-import { PageService } from './application/page.service';
+import { PageService } from './application/page-service';
 import { PageController } from './presentation/controllers/page.controller';
-import { SetupService } from './application/setup.service';
+import { SetupService } from './application/setup-service';
 import { SetupController } from './presentation/controllers/setup.controller';
-import { GitSyncService } from './application/git-sync.service';
+import { GitSyncService } from './application/git-sync-service';
 import { SyncController } from './presentation/controllers/sync.controller';
 
 // Load environment variables
@@ -58,7 +58,7 @@ function createApp(): Application {
   app.use('/api', pageController.router);
 
   // Health check
-  app.get('/health', (req, res) => {
+  app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 

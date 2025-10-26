@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { SetupService } from '../application/setup.service';
+import { SetupService } from '../../application/setup-service';
 
 export class SetupController {
   constructor(private setupService: SetupService) { }
 
-  async checkSetup(req: Request, res: Response): Promise<void> {
+  async checkSetup(_req: Request, res: Response): Promise<void> {
     try {
       const isConfigured = await this.setupService.isConfigured();
       res.json({ configured: isConfigured });
@@ -37,7 +37,7 @@ export class SetupController {
     }
   }
 
-  async getConfig(req: Request, res: Response): Promise<void> {
+  async getConfig(_req: Request, res: Response): Promise<void> {
     try {
       const config = await this.setupService.getConfig();
       res.json(config);

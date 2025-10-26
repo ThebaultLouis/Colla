@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { PageService } from '../../application/page.service';
+import { PageService } from '../../application/page-service';
 
 /**
  * PageController - Adapter HTTP (Architecture Hexagonale)
@@ -15,6 +15,7 @@ export class PageController {
 
   private initializeRoutes(): void {
     this.router.post('/pages', this.createPage.bind(this));
+    this.router.post('/pages/reorder', this.reorderPages.bind(this)); // Avant les routes avec :id
     this.router.get('/pages', this.listPages.bind(this));
     this.router.get('/pages/root', this.listRootPages.bind(this)); // Nouvelles routes
     this.router.get('/pages/:id', this.getPage.bind(this));
@@ -70,20 +71,6 @@ export class PageController {
       res.status(200).json(enrichedPages);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
-    }
-  }
-
-  private async listDatabasePages(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const pages = await this.pageService.listDatabasePages(id);
-      res.status(200).json(pages.map((p) => p.toJSON()));
-    } catch (error) {
-      if ((error as Error).message.includes('not found')) {
-        res.status(404).json({ error: (error as Error).message });
-      } else {
-        res.status(500).json({ error: (error as Error).message });
-      }
     }
   }
 
@@ -150,6 +137,22 @@ export class PageController {
       } else {
         res.status(500).json({ error: (error as Error).message });
       }
+    }
+  }
+
+  private async reorderPages(req: Request, res: Response): Promise<void> {
+    try {
+      const { pageIds } = req.body;
+      
+      if (!Array.isArray(pageIds)) {
+        res.status(400).json({ error: 'pageIds must be an array' });
+        return;
+      }
+
+      await this.pageService.reorderPages(pageIds);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
   }
 
