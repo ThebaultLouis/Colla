@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { setupApi } from './api/setup.api';
 import { GitHubSetup } from './components/GitHubSetup';
 import { Layout } from './components/Layout';
+import { Home } from './components/Home';
 import { PageList } from './components/PageList';
 import { PageEditor } from './components/PageEditor';
 import { DatabaseView } from './components/DatabaseView';
@@ -49,7 +50,8 @@ function ProtectedRoutes() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<PageList />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/pages" element={<PageList />} />
         <Route path="/page/new" element={<PageEditor />} />
         <Route path="/page/:id" element={<PageEditor />} />
         <Route path="/database/new" element={<DatabaseView />} />

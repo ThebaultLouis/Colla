@@ -104,3 +104,181 @@
   font-size: 14px;
   color: rgba(55, 53, 47, 0.45);
 }
+
+/* Properties section */
+.properties-section {
+  margin-bottom: 32px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.properties-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.properties-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(55, 53, 47, 0.65);
+  margin: 0;
+}
+
+.add-property-btn {
+  padding: 4px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 3px;
+  background: rgba(35, 131, 226, 0.08);
+  color: #2383e2;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.add-property-btn:hover {
+  background: rgba(35, 131, 226, 0.16);
+}
+
+.add-property-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(242, 241, 238, 0.6);
+  border-radius: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.property-name-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  outline: none;
+  background: white;
+  color: #37352f;
+}
+
+.property-type-select {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  outline: none;
+  background: white;
+  color: #37352f;
+  cursor: pointer;
+}
+
+.add-property-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-primary {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 3px;
+  background: #2383e2;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #1a6dbe;
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  background: white;
+  color: #37352f;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(55, 53, 47, 0.08);
+}
+
+.properties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.property-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.property-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 53, 47, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-value {
+  display: flex;
+  align-items: center;
+}
+
+.property-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 14px;
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  border-radius: 3px;
+  outline: none;
+  background: transparent;
+  color: #37352f;
+  transition: border-color 0.15s ease;
+}
+
+.property-input:hover {
+  border-color: rgba(55, 53, 47, 0.3);
+}
+
+.property-input:focus {
+  border-color: #2383e2;
+  box-shadow: 0 0 0 1px #2383e2;
+}
+
+.property-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2383e2;
+}
+
+.property-select {
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.property-select:hover {
+  background-color: rgba(55, 53, 47, 0.08);
+}

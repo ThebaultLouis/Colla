@@ -98,10 +98,10 @@ export function Sidebar() {
               {showNewMenu && (
                 <div className="sidebar-dropdown">
                   <button onClick={handleCreatePage} className="dropdown-item">
-                    📝 Page
+                    📄 Page
                   </button>
                   <button onClick={handleCreateDatabase} className="dropdown-item">
-                    🗃️ Base de données
+                    📊 Base de données
                   </button>
                 </div>
               )}
@@ -115,7 +115,7 @@ export function Sidebar() {
             ) : (
               rootItems.map((item) => {
                 const path = item.object === 'database' ? `/database/${item.id}` : `/page/${item.id}`;
-                const icon = item.icon?.emoji || item.icon?.external?.url || item.icon?.file?.url || (item.object === 'database' ? '🗃️' : '📝');
+                const icon = item.icon?.emoji || item.icon?.external?.url || item.icon?.file?.url || (item.object === 'database' ? '📊' : '📄');
 
                 return (
                   <Link

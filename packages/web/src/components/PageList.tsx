@@ -44,7 +44,6 @@ export function PageList() {
   return (
     <div className="page-list">
       <div className="list-header">
-        <h1>My Workspace</h1>
         <div className="header-actions">
           <button
             onClick={handleCreateDatabase}
