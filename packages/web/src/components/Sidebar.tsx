@@ -73,7 +73,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isExpanded && !hasLoadedChildren) {
       await loadChildren();
     }
@@ -116,7 +116,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
     e.preventDefault();
     e.stopPropagation();
     if (!confirm(`Êtes-vous sûr de vouloir supprimer "${item.title || 'Sans titre'}" ?`)) return;
-    
+
     try {
       await pageApi.deletePage(item.id);
       setShowOptionsMenu(false);
@@ -129,10 +129,10 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
 
   const path = item.object === 'database' ? `/database/${item.id}` : `/page/${item.id}`;
   const icon = item.icon?.emoji || item.icon?.external?.url || item.icon?.file?.url || (item.object === 'database' ? '📊' : '📄');
-  
+
   // L'arborescence n'est disponible que pour les pages, pas pour les databases
   const canHaveChildren = item.object === 'page';
-  
+
   // Afficher le toggle uniquement si :
   // 1. C'est une page (canHaveChildren)
   // 2. ET (on a des enfants chargés OU le backend indique qu'il y a des enfants)
@@ -147,7 +147,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
           style={{ paddingLeft: `${level * 16 + 8}px` }}
         >
           {showToggle && (
-            <button 
+            <button
               className={`tree-toggle ${isExpanded ? 'expanded' : ''}`}
               onClick={handleToggle}
             >
@@ -164,13 +164,13 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
         <div className="tree-item-actions">
           {canHaveChildren && (
             <div className="tree-action-menu">
-              <button 
+              <button
                 ref={addButtonRef}
                 className="tree-action-btn"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  
+
                   if (!showAddMenu && addButtonRef.current) {
                     const rect = addButtonRef.current.getBoundingClientRect();
                     setAddMenuPosition({
@@ -178,7 +178,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
                       left: rect.left
                     });
                   }
-                  
+
                   setShowAddMenu(!showAddMenu);
                   setShowOptionsMenu(false);
                 }}
@@ -188,15 +188,15 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
               </button>
             </div>
           )}
-          
+
           <div className="tree-action-menu">
-            <button 
+            <button
               ref={optionsButtonRef}
               className="tree-action-btn"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if (!showOptionsMenu && optionsButtonRef.current) {
                   const rect = optionsButtonRef.current.getBoundingClientRect();
                   setOptionsMenuPosition({
@@ -204,7 +204,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
                     left: rect.left
                   });
                 }
-                
+
                 setShowOptionsMenu(!showOptionsMenu);
                 setShowAddMenu(false);
               }}
@@ -215,10 +215,10 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
           </div>
         </div>
       </div>
-      
+
       {/* Dropdowns en position fixed */}
       {showAddMenu && (
-        <div 
+        <div
           className="tree-dropdown tree-dropdown-fixed"
           style={{
             position: 'fixed',
@@ -234,9 +234,9 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
           </button>
         </div>
       )}
-      
+
       {showOptionsMenu && (
-        <div 
+        <div
           className="tree-dropdown tree-dropdown-fixed"
           style={{
             position: 'fixed',
@@ -249,7 +249,7 @@ function TreeItem({ item, level, isActive, onDelete, refreshTrigger }: TreeItemP
           </button>
         </div>
       )}
-      
+
       {isExpanded && children.length > 0 && (
         <div className="tree-children">
           {children.map((child) => (

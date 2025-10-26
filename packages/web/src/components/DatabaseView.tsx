@@ -570,7 +570,7 @@ export function DatabaseView() {
       </div>
 
       {selectedPageId && (
-        <PageModal 
+        <PageModal
           pageId={selectedPageId}
           isOpen={isPageModalOpen}
           onClose={handleCloseModal}

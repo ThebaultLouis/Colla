@@ -54,7 +54,7 @@ export class PageController {
   private async listRootPages(_req: Request, res: Response): Promise<void> {
     try {
       const pages = await this.pageService.listRootPages();
-      
+
       // Enrichir avec hasChildren
       const enrichedPages = await Promise.all(
         pages.map(async (page) => {
@@ -66,7 +66,7 @@ export class PageController {
           return json;
         })
       );
-      
+
       res.status(200).json(enrichedPages);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -91,7 +91,7 @@ export class PageController {
     try {
       const { id } = req.params;
       const children = await this.pageService.listPageChildren(id);
-      
+
       // Enrichir avec hasChildren
       const enrichedChildren = await Promise.all(
         children.map(async (page) => {
@@ -103,7 +103,7 @@ export class PageController {
           return json;
         })
       );
-      
+
       res.status(200).json(enrichedChildren);
     } catch (error) {
       if ((error as Error).message.includes('not found')) {

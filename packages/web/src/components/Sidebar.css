@@ -212,6 +212,7 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
 /* Arborescence */
 .tree-item {
   display: flex;
@@ -263,6 +264,7 @@
     opacity: 0;
     max-height: 0;
   }
+
   to {
     opacity: 1;
     max-height: 1000px;

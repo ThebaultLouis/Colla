@@ -54,7 +54,7 @@ export function PageEditor() {
 
   const handleAddChild = async () => {
     if (!id || !newChildTitle.trim()) return;
-    
+
     try {
       await pageApi.createPage(newChildTitle, '', newChildType, id);
       setNewChildTitle('');
@@ -69,9 +69,9 @@ export function PageEditor() {
   const handleSave = async () => {
     // Ne pas sauvegarder si c'est une nouvelle page sans titre
     if (!id && !title.trim()) return;
-    
+
     console.log('💾 Saving page:', { id, title, content: content.substring(0, 50) });
-    
+
     setSaving(true);
     try {
       if (id && id !== 'new') {
@@ -333,7 +333,7 @@ export function PageEditor() {
   // Les propriétés ne sont éditables que pour les pages appartenant à une database
   // Le schema des propriétés est défini par la database parente
   const isPageInDatabase = page && page.parent && page.parent.type === 'database_id';
-  
+
   // Les pages enfants ne sont disponibles que pour les pages normales (pas les databases, pas les pages de database)
   const canHaveChildren = page && page.object === 'page' && !isPageInDatabase;
 

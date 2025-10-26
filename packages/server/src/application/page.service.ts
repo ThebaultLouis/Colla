@@ -21,7 +21,7 @@ export class PageService {
       if (!parent) {
         throw new Error(`Parent page with id ${parentId} not found`);
       }
-      
+
       // Si le parent est une database, utiliser Parent.dataSource
       // Sinon, utiliser Parent.page
       if (parent.isADatabase()) {
