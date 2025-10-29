@@ -180,7 +180,7 @@ export class GitPageRepository implements PageRepository {
   async findById(id: PageId): Promise<Page | null> {
     // Essayer de trouver le dossier de la page (avec préfixe titre ou sans)
     const pageFolder = this.findPageFolder(id.getValue());
-    
+
     if (pageFolder) {
       const metadataPath = path.join(pageFolder, 'metadata.json');
       const contentPath = path.join(pageFolder, 'content.md');
@@ -188,10 +188,10 @@ export class GitPageRepository implements PageRepository {
       if (fs.existsSync(metadataPath)) {
         const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
         const content = fs.existsSync(contentPath) ? fs.readFileSync(contentPath, 'utf-8') : '';
-        
+
         // Combiner metadata et content
         const data = { ...metadata, content };
-        
+
         return this.reconstructPageFromFullData(data);
       }
     }
@@ -295,34 +295,34 @@ export class GitPageRepository implements PageRepository {
     }
 
     const pagesMap = new Map<string, Page>(); // Utiliser une Map pour dédupliquer par ID
-    
+
     // Fonction récursive pour parcourir tous les dossiers
     const scanDirectory = (dir: string) => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory()) {
           // Vérifier si ce dossier contient une page (metadata.json)
           const metadataPath = path.join(fullPath, 'metadata.json');
           const contentPath = path.join(fullPath, 'content.md');
-          
+
           if (fs.existsSync(metadataPath)) {
             try {
               const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
               const content = fs.existsSync(contentPath) ? fs.readFileSync(contentPath, 'utf-8') : '';
-              
+
               const data = { ...metadata, content };
               const page = this.reconstructPageFromFullData(data);
-              
+
               // Ajouter à la Map (écrase l'ancienne version si elle existe)
               pagesMap.set(page.getId().getValue(), page);
             } catch (error) {
               console.error(`Error loading page from ${metadataPath}:`, error);
             }
           }
-          
+
           // Continuer à scanner les sous-dossiers (pages enfants)
           scanDirectory(fullPath);
         } else if (entry.isFile() && entry.name.endsWith('.json')) {
@@ -332,7 +332,7 @@ export class GitPageRepository implements PageRepository {
             const data = JSON.parse(content);
             const page = this.reconstructPageFromFullData(data);
             const pageId = page.getId().getValue();
-            
+
             // N'ajouter que si la page n'existe pas déjà dans le nouveau format
             if (!pagesMap.has(pageId)) {
               pagesMap.set(pageId, page);
@@ -370,11 +370,11 @@ export class GitPageRepository implements PageRepository {
 
     // Essayer d'abord de trouver le dossier (nouvelle structure avec préfixe)
     const pageFolder = this.findPageFolder(id.getValue());
-    
+
     if (pageFolder && fs.existsSync(pageFolder) && fs.statSync(pageFolder).isDirectory()) {
       // Obtenir le chemin relatif pour git
       const relativePath = path.relative(this.gitDir, pageFolder);
-      
+
       // Supprimer récursivement le dossier et son contenu
       fs.rmSync(pageFolder, { recursive: true, force: true });
 
@@ -441,7 +441,7 @@ export class GitPageRepository implements PageRepository {
     // Remonter la hiérarchie des parents
     while (currentPage) {
       const pageId = currentPage.getId().getValue();
-      
+
       // Éviter les boucles infinies
       if (visited.has(pageId)) {
         console.warn(`Circular reference detected for page ${pageId}`);
@@ -456,15 +456,15 @@ export class GitPageRepository implements PageRepository {
       // Récupérer le parent
       const parent = currentPage.getParent();
       const parentData = parent.getValue();
-      
+
       if (parent.isPage() && 'page_id' in parentData) {
         try {
           // Charger la page parent de manière synchrone
           const parentId = PageId.create(parentData.page_id);
-          
+
           // Chercher le dossier parent (peut avoir n'importe quel préfixe)
           const parentFolder = this.findPageFolder(parentId.getValue());
-          
+
           if (parentFolder) {
             const parentMetadataPath = path.join(parentFolder, 'metadata.json');
             const parentMetadata = JSON.parse(fs.readFileSync(parentMetadataPath, 'utf-8'));
@@ -518,11 +518,11 @@ export class GitPageRepository implements PageRepository {
       }
 
       const entries = fs.readdirSync(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const fullPath = path.join(dir, entry.name);
-          
+
           // Vérifier si le nom du dossier se termine par l'ID de la page
           if (entry.name === pageId || entry.name.endsWith(`-${pageId}`)) {
             // Vérifier que c'est bien un dossier de page (contient metadata.json)
@@ -530,7 +530,7 @@ export class GitPageRepository implements PageRepository {
               return fullPath;
             }
           }
-          
+
           // Chercher récursivement dans les sous-dossiers
           const found = searchInDir(fullPath);
           if (found) {
@@ -538,7 +538,7 @@ export class GitPageRepository implements PageRepository {
           }
         }
       }
-      
+
       return null;
     };
 
@@ -552,12 +552,12 @@ export class GitPageRepository implements PageRepository {
   private getPageFolderName(page: Page): string {
     const pageId = page.getId().getValue();
     const titleValue = page.getTitle().getValue();
-    
+
     console.log(`🗂️  getPageFolderName for page ${pageId}:`, {
       titleValue,
       titleLength: titleValue.length,
     });
-    
+
     if (titleValue && titleValue.trim().length > 0) {
       const slug = this.slugifyTitle(titleValue);
       console.log(`🔖 Slugified title: "${slug}"`);
@@ -567,7 +567,7 @@ export class GitPageRepository implements PageRepository {
         return folderName;
       }
     }
-    
+
     // Fallback : juste l'ID si pas de titre ou slug vide
     console.log(`⚠️  Using ID only for folder name`);
     return pageId;
