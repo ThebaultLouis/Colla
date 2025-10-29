@@ -1,0 +1,27 @@
+.title-cell {
+  cursor: pointer;
+  font-weight: 500;
+  min-height: 22px;
+  padding: 2px 0;
+}
+
+.title-cell-text {
+  transition: color 0.15s ease;
+}
+
+.title-cell:hover .title-cell-text {
+  color: #2383e2;
+}
+
+.title-cell-input {
+  width: 100%;
+  border: 1px solid #2383e2;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #37352f;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}

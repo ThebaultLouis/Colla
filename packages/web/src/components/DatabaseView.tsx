@@ -3,14 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   pageApi,
   PageDTO,
-  PropertyValueDTO,
-  TitlePropertyDTO,
-  NumberPropertyDTO,
-  CheckboxPropertyDTO,
-  SelectPropertyDTO,
-  DatePropertyDTO
+  PropertyValueDTO
 } from '../api/page.api';
 import { PageModal } from './PageModal';
+import { ResizeHandle } from './ResizeHandle';
+import { NewPropertyModal } from './NewPropertyModal';
+import { PropertyCell } from './cells/PropertyCell';
 import './DatabaseView.css';
 
 interface PropertyDefinition {
@@ -19,42 +17,6 @@ interface PropertyDefinition {
   type: 'title' | 'rich_text' | 'number' | 'checkbox' | 'date' | 'select' | 'status' | 'url' | 'email' | 'multi_select';
 }
 
-// Helper pour extraire le texte d'une TitleProperty
-function getTitleText(prop: PropertyValueDTO | undefined): string {
-  if (!prop || prop.type !== 'title') return '';
-  const titleProp = prop as TitlePropertyDTO;
-  return titleProp.title.map(t => t.plain_text).join('');
-}
-
-// Helper pour extraire la valeur d'une propriété
-function getPropertyDisplayValue(prop: PropertyValueDTO | undefined): string {
-  if (!prop) return '';
-
-  switch (prop.type) {
-    case 'title':
-      return getTitleText(prop);
-    case 'rich_text':
-      return (prop as any).rich_text?.map((t: any) => t.plain_text).join('') || '';
-    case 'number':
-      return (prop as NumberPropertyDTO).number?.toString() || '';
-    case 'checkbox':
-      return (prop as CheckboxPropertyDTO).checkbox ? '✓' : '';
-    case 'select':
-      return (prop as SelectPropertyDTO).select?.name || '';
-    case 'status':
-      return (prop as any).status?.name || '';
-    case 'date':
-      return (prop as DatePropertyDTO).date?.start || '';
-    case 'url':
-      return (prop as any).url || '';
-    case 'email':
-      return (prop as any).email || '';
-    case 'multi_select':
-      return (prop as any).multi_select?.map((s: any) => s.name).join(', ') || '';
-    default:
-      return '';
-  }
-}
 
 export function DatabaseView() {
   const { id } = useParams<{ id: string }>();
@@ -65,10 +27,206 @@ export function DatabaseView() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [properties, setProperties] = useState<PropertyDefinition[]>([]);
-  const [editingCell, setEditingCell] = useState<{ pageId: string; propertyName: string } | null>(null);
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
+
+  // Column widths state
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({});
+
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Filter state
+  const [filterText, setFilterText] = useState('');
+
+  const getColumnWidth = (propertyId: string, propertyName: string): number => {
+    if (columnWidths[propertyId]) {
+      return columnWidths[propertyId];
+    }
+    return propertyName === 'Title' ? 280 : 150;
+  };
+
+  const handleColumnResize = (propertyId: string, width: number) => {
+    const newWidths = { ...columnWidths, [propertyId]: width };
+    setColumnWidths(newWidths);
+
+    // Persist to localStorage
+    if (id) {
+      localStorage.setItem(`database-columns-${id}`, JSON.stringify(newWidths));
+    }
+  };
+
+  // Load column widths from localStorage on mount
+  useEffect(() => {
+    if (id) {
+      const saved = localStorage.getItem(`database-columns-${id}`);
+      if (saved) {
+        try {
+          setColumnWidths(JSON.parse(saved));
+        } catch (error) {
+          console.error('Failed to parse saved column widths:', error);
+        }
+      }
+    }
+  }, [id]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter to add a new page
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleAddPage();
+      }
+
+      // Escape to clear filter
+      if (e.key === 'Escape' && filterText) {
+        setFilterText('');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [filterText]);
+
+  const getPropertyIcon = (type: string): string => {
+    switch (type) {
+      case 'title':
+        return '📄';
+      case 'rich_text':
+        return '📝';
+      case 'number':
+        return '🔢';
+      case 'checkbox':
+        return '✅';
+      case 'date':
+        return '📅';
+      case 'select':
+        return '🏷️';
+      case 'multi_select':
+        return '🏷️';
+      case 'status':
+        return '🔵';
+      case 'url':
+        return '🔗';
+      case 'email':
+        return '✉️';
+      default:
+        return '📄';
+    }
+  };
+
+  const handleSort = (propertyName: string) => {
+    if (sortColumn === propertyName) {
+      // Toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column
+      setSortColumn(propertyName);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedPages = (): PageDTO[] => {
+    if (!sortColumn) return pages;
+
+    const sorted = [...pages].sort((a, b) => {
+      const propA = a.properties?.[sortColumn];
+      const propB = b.properties?.[sortColumn];
+
+      // Handle null/undefined values
+      if (!propA && !propB) return 0;
+      if (!propA) return 1;
+      if (!propB) return -1;
+
+      // Compare based on type
+      let valueA: any;
+      let valueB: any;
+
+      switch (propA.type) {
+        case 'title':
+          valueA = (propA as any).title?.[0]?.plain_text || '';
+          valueB = (propB as any).title?.[0]?.plain_text || '';
+          break;
+        case 'rich_text':
+          valueA = (propA as any).rich_text?.[0]?.plain_text || '';
+          valueB = (propB as any).rich_text?.[0]?.plain_text || '';
+          break;
+        case 'number':
+          valueA = (propA as any).number ?? -Infinity;
+          valueB = (propB as any).number ?? -Infinity;
+          break;
+        case 'checkbox':
+          valueA = (propA as any).checkbox ? 1 : 0;
+          valueB = (propB as any).checkbox ? 1 : 0;
+          break;
+        case 'date':
+          valueA = (propA as any).date?.start || '';
+          valueB = (propB as any).date?.start || '';
+          break;
+        case 'select':
+        case 'status':
+          valueA = (propA as any).select?.name || (propA as any).status?.name || '';
+          valueB = (propB as any).select?.name || (propB as any).status?.name || '';
+          break;
+        case 'url':
+          valueA = (propA as any).url || '';
+          valueB = (propB as any).url || '';
+          break;
+        case 'email':
+          valueA = (propA as any).email || '';
+          valueB = (propB as any).email || '';
+          break;
+        default:
+          valueA = '';
+          valueB = '';
+      }
+
+      // Compare values
+      if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  };
+
+  const getFilteredPages = (pagesToFilter: PageDTO[]): PageDTO[] => {
+    if (!filterText.trim()) return pagesToFilter;
+
+    const lowerFilter = filterText.toLowerCase();
+
+    return pagesToFilter.filter((page) => {
+      // Search in all text-based properties
+      return Object.entries(page.properties || {}).some(([_, value]) => {
+        if (!value) return false;
+
+        switch (value.type) {
+          case 'title':
+            return (value as any).title?.[0]?.plain_text?.toLowerCase().includes(lowerFilter);
+          case 'rich_text':
+            return (value as any).rich_text?.[0]?.plain_text?.toLowerCase().includes(lowerFilter);
+          case 'url':
+            return (value as any).url?.toLowerCase().includes(lowerFilter);
+          case 'email':
+            return (value as any).email?.toLowerCase().includes(lowerFilter);
+          case 'select':
+          case 'status':
+            return (value as any).select?.name?.toLowerCase().includes(lowerFilter) ||
+              (value as any).status?.name?.toLowerCase().includes(lowerFilter);
+          default:
+            return false;
+        }
+      });
+    });
+  };
+
+  const getDisplayPages = (): PageDTO[] => {
+    const sorted = getSortedPages();
+    return getFilteredPages(sorted);
+  };
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -386,17 +544,9 @@ export function DatabaseView() {
       setPages(pages.map(p =>
         p.id === pageId ? { ...p, properties: updatedProperties } : p
       ));
-
-      setEditingCell(null);
     } catch (error) {
       console.error('❌ Failed to update property:', error);
     }
-  };
-
-  const getPropertyValue = (page: PageDTO, propertyName: string): string | number | boolean => {
-    const prop = page.properties?.[propertyName];
-    if (!prop) return '';
-    return getPropertyDisplayValue(prop);
   };
 
   if (loading) {
@@ -435,6 +585,24 @@ export function DatabaseView() {
           <button onClick={handleAddPage} className="add-page-btn">
             ➕ Ajouter une page
           </button>
+          <div className="database-filter">
+            <input
+              type="text"
+              className="filter-input"
+              placeholder="🔍 Filtrer..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+            />
+            {filterText && (
+              <button
+                className="clear-filter-btn"
+                onClick={() => setFilterText('')}
+                title="Effacer le filtre"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {pages.length === 0 ? (
@@ -450,7 +618,32 @@ export function DatabaseView() {
               <thead>
                 <tr>
                   {properties.map((prop) => (
-                    <th key={prop.id}>📄 {prop.name}</th>
+                    <th
+                      key={prop.id}
+                      style={{
+                        width: getColumnWidth(prop.id, prop.name),
+                        position: 'relative'
+                      }}
+                    >
+                      <div
+                        className="column-header"
+                        onClick={() => handleSort(prop.name)}
+                        style={{ cursor: 'pointer', userSelect: 'none' }}
+                      >
+                        <span>
+                          {getPropertyIcon(prop.type)} {prop.name}
+                          {sortColumn === prop.name && (
+                            <span className="sort-indicator">
+                              {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                            </span>
+                          )}
+                        </span>
+                        <ResizeHandle
+                          propertyId={prop.id}
+                          onResize={handleColumnResize}
+                        />
+                      </div>
+                    </th>
                   ))}
                   <th className="add-property-header">
                     <button
@@ -458,63 +651,26 @@ export function DatabaseView() {
                       onClick={() => setShowAddProperty(true)}
                       title="Ajouter une propriété"
                     >
-                      +
+                      <span>+</span>
+                      <span>Nouvelle propriété</span>
                     </button>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {pages.map((page) => (
+                {getDisplayPages().map((page) => (
                   <tr key={page.id} className="database-row">
                     {properties.map((prop) => {
-                      const isEditing = editingCell?.pageId === page.id && editingCell?.propertyName === prop.name;
-                      const value = getPropertyValue(page, prop.name);
+                      const propertyValue = page.properties?.[prop.name];
 
                       return (
-                        <td
-                          key={`${page.id}-${prop.name}`}
-                          className={prop.name === 'Title' ? 'name-cell clickable' : 'editable-cell'}
-                          onClick={() => {
-                            if (prop.name === 'Title') {
-                              handleNameClick(page.id);
-                            } else {
-                              setEditingCell({ pageId: page.id, propertyName: prop.name });
-                            }
-                          }}
-                        >
-                          {prop.name === 'Title' ? (
-                            <span className="page-name">{page.title || 'Sans titre'}</span>
-                          ) : isEditing ? (
-                            prop.type === 'checkbox' ? (
-                              <input
-                                type="checkbox"
-                                checked={!!value}
-                                onChange={(e) => handleUpdatePropertyValue(page.id, prop.name, e.target.checked)}
-                                autoFocus
-                              />
-                            ) : (
-                              <input
-                                type={prop.type === 'number' ? 'number' : 'text'}
-                                defaultValue={value as string}
-                                onBlur={(e) => {
-                                  const newValue = prop.type === 'number' ? parseFloat(e.target.value) : e.target.value;
-                                  handleUpdatePropertyValue(page.id, prop.name, newValue);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const target = e.target as HTMLInputElement;
-                                    const newValue = prop.type === 'number' ? parseFloat(target.value) : target.value;
-                                    handleUpdatePropertyValue(page.id, prop.name, newValue);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }}
-                                autoFocus
-                              />
-                            )
-                          ) : (
-                            <span>{value || '-'}</span>
-                          )}
+                        <td key={`${page.id}-${prop.name}`}>
+                          <PropertyCell
+                            type={prop.type}
+                            value={propertyValue}
+                            onUpdate={(value) => handleUpdatePropertyValue(page.id, prop.name, value)}
+                            onTitleClick={prop.name === 'Title' ? () => handleNameClick(page.id) : undefined}
+                          />
                         </td>
                       );
                     })}
@@ -525,45 +681,10 @@ export function DatabaseView() {
             </table>
 
             {showAddProperty && (
-              <div className="add-property-modal">
-                <div className="modal-content">
-                  <h3>Ajouter une propriété</h3>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.currentTarget);
-                    const name = formData.get('name') as string;
-                    const type = formData.get('type') as PropertyDefinition['type'];
-                    if (name) {
-                      handleAddProperty(name, type);
-                    }
-                  }}>
-                    <div className="form-group">
-                      <label>Nom de la propriété</label>
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Nom..."
-                        required
-                        autoFocus
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Type</label>
-                      <select name="type">
-                        <option value="rich_text">Texte</option>
-                        <option value="number">Nombre</option>
-                        <option value="checkbox">Case à cocher</option>
-                        <option value="date">Date</option>
-                        <option value="select">Select</option>
-                      </select>
-                    </div>
-                    <div className="modal-actions">
-                      <button type="button" onClick={() => setShowAddProperty(false)}>Annuler</button>
-                      <button type="submit" className="primary">Ajouter</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+              <NewPropertyModal
+                onClose={() => setShowAddProperty(false)}
+                onCreate={(name, type) => handleAddProperty(name, type as PropertyDefinition['type'])}
+              />
             )}
           </div>
         )}

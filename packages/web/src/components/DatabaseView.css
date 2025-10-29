@@ -71,7 +71,9 @@
 
 .database-toolbar {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
@@ -91,6 +93,55 @@
 
 .add-page-btn:hover {
   background: rgba(35, 131, 226, 0.14);
+}
+
+.database-filter {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 6px 32px 6px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.filter-input:focus {
+  border-color: #2383e2;
+}
+
+.filter-input::placeholder {
+  color: rgba(55, 53, 47, 0.4);
+}
+
+.clear-filter-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(55, 53, 47, 0.4);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.clear-filter-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #37352f;
 }
 
 .database-empty {
@@ -128,6 +179,7 @@
 .database-table table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .database-table thead {
@@ -141,11 +193,31 @@
   font-weight: 600;
   color: rgba(55, 53, 47, 0.65);
   background-color: rgba(0, 0, 0, 0.02);
+  position: relative;
+  user-select: none;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.column-header:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.sort-indicator {
+  font-size: 10px;
+  color: #2383e2;
+  margin-left: 4px;
 }
 
 .database-row {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 
 .database-row:hover {
@@ -156,6 +228,7 @@
   padding: 10px 12px;
   font-size: 14px;
   color: #37352f;
+  transition: all 0.15s ease;
 }
 
 .name-cell {
@@ -198,29 +271,32 @@
 
 /* Add property button in header */
 .add-property-header {
-  width: 60px;
+  width: 150px;
   padding: 8px 12px;
-  text-align: center;
+  text-align: left;
   background-color: rgba(0, 0, 0, 0.02);
 }
 
 .add-property-btn {
-  width: 32px;
+  width: 100%;
   height: 32px;
-  border: none;
+  border: 2px dashed transparent;
   border-radius: 4px;
   background: transparent;
   color: rgba(55, 53, 47, 0.45);
-  font-size: 18px;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  font-weight: 500;
 }
 
 .add-property-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(55, 53, 47, 0.03);
+  border-color: rgba(55, 53, 47, 0.3);
   color: rgba(55, 53, 47, 0.8);
 }
 

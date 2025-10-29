@@ -1,0 +1,57 @@
+.status-cell {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.status-cell:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.status-cell-empty {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.status-cell-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+}
+
+.status-cell-dropdown {
+  position: absolute;
+  z-index: 100;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  outline: none;
+}
+
+.status-cell-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.status-cell-option:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.status-cell-option:first-child {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}

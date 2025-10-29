@@ -1,0 +1,45 @@
+.email-cell {
+  padding: 6px 8px;
+  border-radius: 3px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.email-cell-link {
+  color: #2383e2;
+  text-decoration: none;
+  font-size: 14px;
+  transition: opacity 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.email-cell-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.email-cell-empty {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 14px;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.email-cell-empty:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.email-cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #2383e2;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  box-shadow: 0 0 0 1px #2383e2;
+}

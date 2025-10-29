@@ -1,0 +1,39 @@
+.date-cell {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.date-cell:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.date-cell-value {
+  color: #37352f;
+  font-size: 14px;
+}
+
+.date-cell-empty {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.date-cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #2383e2;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  box-shadow: 0 0 0 1px #2383e2;
+}
+
+.date-cell-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}

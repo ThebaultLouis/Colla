@@ -1,0 +1,71 @@
+.multi-select-cell {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.multi-select-cell:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.multi-select-empty {
+  color: rgba(55, 53, 47, 0.4);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.multi-select-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.multi-select-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+}
+
+.multi-select-cell-dropdown {
+  position: absolute;
+  z-index: 100;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  outline: none;
+  padding: 4px 0;
+}
+
+.multi-select-cell-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multi-select-cell-option:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.multi-select-cell-option.selected {
+  background-color: rgba(35, 131, 226, 0.08);
+}
+
+.multi-select-checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
