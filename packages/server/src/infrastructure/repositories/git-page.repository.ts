@@ -142,9 +142,31 @@ export class GitPageRepository implements PageRepository {
     await this.ensureGitInitialized();
 
     const pageData = page.toJSON();
+    const pageId = page.getId().getValue();
     const pageDir = this.getPageDirectory(page);
     const metadataPath = path.join(pageDir, 'metadata.json');
     const contentPath = path.join(pageDir, 'content.md');
+
+    // Vérifier s'il existe un ancien dossier avec un slug différent
+    const existingFolder = this.findPageFolder(pageId);
+    if (existingFolder && existingFolder !== pageDir) {
+      console.log(`🔄 Page folder changed: ${existingFolder} -> ${pageDir}`);
+
+      // Supprimer l'ancien dossier récursivement
+      this.deleteFolderRecursive(existingFolder);
+
+      // Git remove de l'ancien dossier
+      try {
+        const oldRelativePath = path.relative(this.gitDir, existingFolder);
+        await git.remove({
+          fs,
+          dir: this.gitDir,
+          filepath: oldRelativePath
+        });
+      } catch (error) {
+        console.error('Error removing old folder from git:', error);
+      }
+    }
 
     // Créer le dossier de la page
     if (!fs.existsSync(pageDir)) {
@@ -571,6 +593,29 @@ export class GitPageRepository implements PageRepository {
     // Fallback : juste l'ID si pas de titre ou slug vide
     console.log(`⚠️  Using ID only for folder name`);
     return pageId;
+  }
+
+  /**
+   * Supprimer récursivement un dossier et son contenu
+   */
+  private deleteFolderRecursive(folderPath: string): void {
+    if (!fs.existsSync(folderPath)) {
+      return;
+    }
+
+    const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(folderPath, entry.name);
+
+      if (entry.isDirectory()) {
+        this.deleteFolderRecursive(fullPath);
+      } else {
+        fs.unlinkSync(fullPath);
+      }
+    }
+
+    fs.rmdirSync(folderPath);
   }
 
   /**
