@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { pageApi, PageDTO, PropertyValueDTO } from '../api/page.api';
 import { useRefresh } from '../contexts/RefreshContext';
+import { MarkdownEditor } from './MarkdownEditor';
 import './PageEditor.css';
 
 export function PageEditor() {
@@ -372,12 +373,11 @@ export function PageEditor() {
         </div>
       )}
 
-      <textarea
-        className="content-editor"
-        placeholder="Start writing..."
+      <MarkdownEditor
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={setContent}
         onBlur={handleSave}
+        placeholder="Start writing with Markdown..."
       />
 
       {/* Section des pages enfants - Uniquement pour les pages normales (pas databases, pas pages de database) */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { pageApi, PageDTO, PropertyValueDTO } from '../api/page.api';
+import { MarkdownEditor } from './MarkdownEditor';
 import './PageModal.css';
 
 interface PageModalProps {
@@ -16,6 +17,15 @@ export function PageModal({ pageId, isOpen, onClose, onUpdate }: PageModalProps)
   const [properties, setProperties] = useState<Record<string, PropertyValueDTO>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const handleContentChange = (newContent: string) => {
+    console.log('PageModal content changed:', {
+      oldLength: content.length,
+      newLength: newContent.length,
+      preview: newContent.substring(0, 50)
+    });
+    setContent(newContent);
+  };
 
   const handleClose = () => {
     if (onUpdate) onUpdate(); // Recharger la base de données à la fermeture
@@ -44,9 +54,17 @@ export function PageModal({ pageId, isOpen, onClose, onUpdate }: PageModalProps)
   };
 
   const handleSave = async () => {
+    console.log('PageModal handleSave called:', {
+      pageId,
+      title: title.substring(0, 50),
+      content: content.substring(0, 100),
+      contentLength: content.length
+    });
+
     setSaving(true);
     try {
       await pageApi.updatePage(pageId, title, content, properties);
+      console.log('PageModal save successful');
       // Ne pas appeler onUpdate ici pour éviter le clignotement
     } catch (error) {
       console.error('Failed to save page:', error);
@@ -331,12 +349,11 @@ export function PageModal({ pageId, isOpen, onClose, onUpdate }: PageModalProps)
 
               {/* Contenu */}
               <div className="page-modal-editor">
-                <textarea
-                  className="page-modal-textarea"
-                  placeholder="Start writing..."
+                <MarkdownEditor
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={handleContentChange}
                   onBlur={handleSave}
+                  placeholder="Start writing with Markdown..."
                 />
               </div>
             </>

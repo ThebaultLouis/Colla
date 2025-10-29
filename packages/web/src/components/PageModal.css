@@ -173,6 +173,22 @@
 /* Editor */
 .page-modal-editor {
   margin-top: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Style pour l'éditeur Markdown dans le modal */
+.page-modal-editor .markdown-editor {
+  flex: 1;
+  border: none;
+  background: transparent;
+}
+
+.page-modal-editor .markdown-content-editable {
+  min-height: 400px;
+  padding: 3px 2px;
 }
 
 .page-modal-textarea {

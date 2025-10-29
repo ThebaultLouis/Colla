@@ -1,0 +1,72 @@
+.markdown-editor.notion-style {
+  width: 100%;
+  min-height: 200px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+}
+
+.markdown-block {
+  min-height: 1.5em;
+  padding: 3px 2px;
+  outline: none;
+  position: relative;
+  line-height: 1.5;
+}
+
+.markdown-block.paragraph {
+  font-size: 16px;
+  color: #37352f;
+}
+
+.markdown-block.h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+  color: #37352f;
+}
+
+.markdown-block.h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin-top: 0.4em;
+  margin-bottom: 0.2em;
+  color: #37352f;
+}
+
+.markdown-block.h3 {
+  font-size: 1.25em;
+  font-weight: 700;
+  margin-top: 0.3em;
+  margin-bottom: 0.1em;
+  color: #37352f;
+}
+
+.markdown-block.h4 {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-top: 0.2em;
+  color: #37352f;
+}
+
+.markdown-block.h5 {
+  font-size: 1em;
+  font-weight: 700;
+  color: #37352f;
+}
+
+.markdown-block.h6 {
+  font-size: 0.9em;
+  font-weight: 700;
+  color: #787774;
+}
+
+.markdown-block:empty:before {
+  content: attr(data-placeholder);
+  color: #9b9a97;
+  cursor: text;
+  pointer-events: none;
+}
+
+.markdown-block:focus {
+  background-color: rgba(0, 0, 0, 0.02);
+}

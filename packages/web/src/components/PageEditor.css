@@ -98,6 +98,25 @@
   min-height: 500px;
 }
 
+/* Style pour l'éditeur Markdown dans PageEditor */
+.page-editor .markdown-editor {
+  flex: 1;
+  margin-top: 0;
+  border: none;
+  background: transparent;
+}
+
+.page-editor .markdown-textarea {
+  background: transparent;
+  padding: 3px 2px;
+  min-height: 500px;
+}
+
+.page-editor .markdown-preview {
+  padding: 3px 2px;
+  min-height: 500px;
+}
+
 .content-editor::placeholder {
   color: rgba(55, 53, 47, 0.3);
 }
